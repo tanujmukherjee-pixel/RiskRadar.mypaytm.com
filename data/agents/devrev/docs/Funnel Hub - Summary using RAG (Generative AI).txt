@@ -1,0 +1,22 @@
+﻿Funnel Hub Summary & Chatbot POC
+Objective
+To develop an AI-powered system that can generate automatic summaries and insights from funnel data, and enable users to ask complex business questions about the data. Retrieval Augmented Generation (RAG) will be used to ensure accuracy and up-to-date information.
+Importance:
+This project will simplify the navigation of complex funnel data by providing an AI-powered interface that transforms raw data into actionable insights.  It will  simplify decision-making with concise summaries and precise, context-aware answers, saving time and enabling faster actions. The organization will benefit from increased productivity, enhanced data accessibility, and informed decision-making across teams. Additionally, it will position the organization as a leader in generative AI for business intelligence, improving user satisfaction, efficiency, and scalability for future solutions.
+Scope of POC:
+Key areas of focus:
+* Specific use cases and their solutions (including edge cases and applicable verticals)
+* Funnel Hub UI
+* Integrating Claude AI into the UI (including training Claude on our funnels, contexts, and segments, building integration APIs, and connecting to our Druid DB)
+* Predicting technical challenges
+* Defining success metrics (North Star metric)
+User Needs Framework
+Who Needs This Data?
+* Product Managers: Require data to evaluate feature performance, prioritize product development, and make strategic decisions about roadmap features.
+* Business Teams: Need insights for performance tracking, decision-making regarding budgets, resource allocation, and understanding market trends.
+What Decisions Will They Make?
+* Resource Allocation: Understanding where to direct resources (team, budget, time) for maximum impact based on performance metrics.
+* Feature Prioritization: Deciding which features or improvements to focus on based on data-driven insights.
+When Do They Need This Information?
+* Daily/Weekly Reports: Regular updates on performance metrics, trends, and key results, ensuring that teams can make informed decisions on a consistent basis.
+* Real-Time Monitoring: Immediate access to data to enable quick decision-making, especially for critical issues such as system performance or customer issues.
