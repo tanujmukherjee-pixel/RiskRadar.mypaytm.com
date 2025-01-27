@@ -1,15 +1,69 @@
 import requests
 from datetime import datetime
 from dateutil import parser
+import pandas as pd
+from ....utils.api import post_request, get_request
+import json
+import urllib.parse
 
-def execute_query_pulse(query: str, start_date: str, end_date: str) -> str:
+def get_all_funnels():
+    """
+    Fetches all the funnels from the druid
+    """
+    headers = {
+            "Cookie": "_clck=1upy6g3%7C2%7Cfsx%7C0%7C1833; session=.eJwtkUuP2jAYRf9K5TWtbMfxg11KQyg00CQzA2lVoc-xTTKFBOVFYTT_vZHa5ZXu4txz39DRtbYr0bxvBztDx8qgOQLsEw7S-EJjhanPQehCF9wZBr7g4FzBFDg1tZSxnuOWK86xpAUTknpYEzDUWmIoFIQTyQVhhQDATFgsmWQaF74h2KPGV5hh4YivCzz1idSaGjRD56aAs51YbD2lBoZ-YnxDH3o0_4nuQNUnwEG69y-Cf3k-7eyK_S7LfXq4DF77Mj6VQ5gvKHnoXbjMOmP7y2tuyi0MSQVpjC2t_bUL42al9I_h2nxVVTPeO8-4upeQ59Ful3VSbM_pY21lv82Cjym-JY-RufD70Dwl0YVSuwjv7WsEuz-r8bHpPPEy8uSwbIeNvMbnpRuPt5sM6yCCxSnfBO45C9I4Wyar6EDjanH4HEf8W-1JvhagcL1PujLARPjTXvTr_f_o47VtxsrYdlJxaprT5GSGhs62_54iSmH0_hdWcoyH.Z5eFmA.zQAF7VrkccTUtDO6cI5T3fV2mtM",
+            "Content-Type": "application/json",
+        }
+
+    funnel_reponse = get_request("https://pulse.bi.mypaytm.com/api/v1/chart/list/funnelhub_viz", headers)
+    result = [
+        {
+            "funnel_name": item["slice_name"],
+            "goal": item["goal"],
+            "vertical_name": item["vertical_name"],
+            "product_name": item["product_name"],
+            "id": item["id"]
+        }
+        for item in funnel_reponse["result"]
+    ]
+    return result
+
+def fetch_base_query(funnel_id, funnel_name):
+    """
+    Fetches the base query for the funnel
+    """
+    headers = {
+        "Cookie": "_clck=1upy6g3%7C2%7Cfsx%7C0%7C1833; session=.eJwtkUuP2jAYRf9K5TWtbMfxg11KQyg00CQzA2lVoc-xTTKFBOVFYTT_vZHa5ZXu4txz39DRtbYr0bxvBztDx8qgOQLsEw7S-EJjhanPQehCF9wZBr7g4FzBFDg1tZSxnuOWK86xpAUTknpYEzDUWmIoFIQTyQVhhQDATFgsmWQaF74h2KPGV5hh4YivCzz1idSaGjRD56aAs51YbD2lBoZ-YnxDH3o0_4nuQNUnwEG69y-Cf3k-7eyK_S7LfXq4DF77Mj6VQ5gvKHnoXbjMOmP7y2tuyi0MSQVpjC2t_bUL42al9I_h2nxVVTPeO8-4upeQ59Ful3VSbM_pY21lv82Cjym-JY-RufD70Dwl0YVSuwjv7WsEuz-r8bHpPPEy8uSwbIeNvMbnpRuPt5sM6yCCxSnfBO45C9I4Wyar6EDjanH4HEf8W-1JvhagcL1PujLARPjTXvTr_f_o47VtxsrYdlJxaprT5GSGhs62_54iSmH0_hdWcoyH.Z5eFmA.zQAF7VrkccTUtDO6cI5T3fV2mtM",
+        "Content-Type": "application/json",
+    }
+    query_context = get_request(f"https://pulse.bi.mypaytm.com/api/v1/chart/{funnel_id}", headers)["result"]["query_context"]
+
+    query_params = {
+        "form_data": f'{{"slice_id":{funnel_id}}}',
+        "slice_name": funnel_name,
+        "viz_type": "funnelhub_viz",
+    }
+    encoded_params = urllib.parse.urlencode(query_params)
+    url = f"https://pulse.bi.mypaytm.com/api/v1/chart/data?{encoded_params}"
+
+    payload = json.loads(query_context)
+    payload["result_type"] = "query"
+    base_query = post_request(url, headers, payload)
+    return base_query
+
+
+def execute_query_pulse(basequery: str, segment: str, start_date: str, end_date: str) -> str:
     """
     Takes query as json input and returns result of it after querrying pulse
     Data returned corresponds to the user visits to the app for the query
+    :query: druid query in json format
+    :segment: segment to be applied to the query
     :start_date: start date of the query in format "2025-01-01T00:00:00+05:30"
     :end_date: end date of the query in format "2025-01-22T00:00:00+05:30"
-    """
+    :return: result of the query in json format with values as count of user visiting that page
+    """ 
     try:
+        print(basequery)
         api_url = "https://paytmprod.implycloud.com/p/3f93cc1e-b9d1-4bf8-9a97-87392e98cfc6/console/druid/druid/v2"
         
         headers = {
@@ -21,12 +75,24 @@ def execute_query_pulse(query: str, start_date: str, end_date: str) -> str:
         start_date = parser.parse(start_date).strftime(date_format)
         end_date = parser.parse(end_date).strftime(date_format)
 
-        payload = {"queryType":"timeseries","dataSource":"pulse-production","aggregations":[{"type":"filtered","filter":{"type":"and","fields":[{"type":"selector","dimension":"event_category","value":"mobile_prepaid"},{"type":"or","fields":[{"type":"selector","dimension":"vertical_name","value":"/"},{"type":"selector","dimension":"vertical_name","value":"recharges_utilities"},{"type":"selector","dimension":"vertical_name","value":"recharges"},{"type":"selector","dimension":"vertical_name","value":"RU"},{"type":"selector","dimension":"vertical_name","value":"RechargeUtilities"},{"type":"selector","dimension":"vertical_name","value":"dthRecharge"}]},{"type":"selector","dimension":"event_category","value":"mobile_prepaid"}]},"aggregator":{"type":"thetaSketch","name":"Category Landing","fieldName":"dist_sessions"}},{"type":"filtered","filter":{"type":"and","fields":[{"type":"selector","dimension":"screenname","value":"/mobile_prepaid/amount"},{"type":"selector","dimension":"event_category","value":"mobile_prepaid"},{"type":"or","fields":[{"type":"selector","dimension":"vertical_name","value":"/"},{"type":"selector","dimension":"vertical_name","value":"recharges_utilities"},{"type":"selector","dimension":"vertical_name","value":"recharges"},{"type":"selector","dimension":"vertical_name","value":"RU"},{"type":"selector","dimension":"vertical_name","value":"RechargeUtilities"},{"type":"selector","dimension":"vertical_name","value":"dthRecharge"}]},{"type":"selector","dimension":"event_category","value":"mobile_prepaid"}]},"aggregator":{"type":"thetaSketch","name":"Amount","fieldName":"dist_sessions"}},{"type":"filtered","filter":{"type":"and","fields":[{"type":"selector","dimension":"event_action","value":"proceed_clicked"},{"type":"selector","dimension":"screenname","value":"/mobile_prepaid/amount"},{"type":"selector","dimension":"event_category","value":"mobile_prepaid"},{"type":"or","fields":[{"type":"selector","dimension":"vertical_name","value":"/"},{"type":"selector","dimension":"recharges_utilities"},{"type":"selector","dimension":"recharges"},{"type":"selector","dimension":"vertical_name","value":"RU"},{"type":"selector","dimension":"vertical_name","value":"RechargeUtilities"},{"type":"selector","dimension":"vertical_name","value":"dthRecharge"}]},{"type":"selector","dimension":"event_category","value":"mobile_prepaid"}]},"aggregator":{"type":"thetaSketch","name":"Payment Gateway","fieldName":"dist_sessions"}},{"type":"filtered","filter":{"type":"and","fields":[{"type":"selector","dimension":"screenname","value":"/summary/mobile/prepaid"},{"type":"selector","dimension":"event_category","value":"mobile_prepaid"},{"type":"or","fields":[{"type":"selector","dimension":"vertical_name","value":"/"},{"type":"selector","dimension":"recharges_utilities"},{"type":"selector","dimension":"recharges"},{"type":"selector","dimension":"vertical_name","value":"RU"},{"type":"selector","dimension":"vertical_name","value":"RechargeUtilities"},{"type":"selector","dimension":"vertical_name","value":"dthRecharge"}]},{"type":"selector","dimension":"event_category","value":"mobile_prepaid"}]},"aggregator":{"type":"thetaSketch","name":"Summary","fieldName":"dist_sessions"}},{"type":"filtered","filter":{"type":"and","fields":[{"type":"selector","dimension":"event_action","value":"summary_page_loaded_payment_success"},{"type":"selector","dimension":"screenname","value":"/summary/mobile/prepaid"},{"type":"selector","dimension":"event_category","value":"mobile_prepaid"},{"type":"or","fields":[{"type":"selector","dimension":"vertical_name","value":"/"},{"type":"selector","dimension":"recharges_utilities"},{"type":"selector","dimension":"recharges"},{"type":"selector","dimension":"vertical_name","value":"RU"},{"type":"selector","dimension":"vertical_name","value":"RechargeUtilities"},{"type":"selector","dimension":"vertical_name","value":"dthRecharge"}]},{"type":"selector","dimension":"event_category","value":"mobile_prepaid"}]},"aggregator":{"type":"thetaSketch","name":"POS","fieldName":"dist_sessions"}}],"granularity":{"type":"period","timeZone":"IST","period":"P1D"},"postAggregations":[{"type":"thetaSketchEstimate","name":"Category Landing_VS_Amount","field":{"type":"thetaSketchSetOp","name":"final_unique_users_sketch","func":"INTERSECT","fields":[{"type":"fieldAccess","fieldName":"Category Landing"},{"type":"fieldAccess","fieldName":"Amount"}]}},{"type":"thetaSketchEstimate","name":"Amount_VS_Payment Gateway","field":{"type":"thetaSketchSetOp","name":"final_unique_users_sketch","func":"INTERSECT","fields":[{"type":"fieldAccess","fieldName":"Category Landing"},{"type":"fieldAccess","fieldName":"Amount"},{"type":"fieldAccess","fieldName":"Payment Gateway"}]}},{"type":"thetaSketchEstimate","name":"Payment Gateway_VS_Summary","field":{"type":"thetaSketchSetOp","name":"final_unique_users_sketch","func":"INTERSECT","fields":[{"type":"fieldAccess","fieldName":"Category Landing"},{"type":"fieldAccess","fieldName":"Amount"},{"type":"fieldAccess","fieldName":"Payment Gateway"},{"type":"fieldAccess","fieldName":"Summary"}]}},{"type":"thetaSketchEstimate","name":"Summary_VS_POS","field":{"type":"thetaSketchSetOp","name":"final_unique_users_sketch","func":"INTERSECT","fields":[{"type":"fieldAccess","fieldName":"Category Landing"},{"type":"fieldAccess","fieldName":"Amount"},{"type":"fieldAccess","fieldName":"Payment Gateway"},{"type":"fieldAccess","fieldName":"Summary"},{"type":"fieldAccess","fieldName":"POS"}]}}],"intervals":start_date + "/" + end_date,"context":{"skipEmptyBuckets":True,"implyUser":"Anshul Chauhan","implyUserEmail":"anshul1.chauhan@paytm.com","implyDataCube":"funnelhub_viz"},"filter":{"type":"or","fields":[{"type":"and","fields":[{"type":"selector","dimension":"event_category","value":"mobile_prepaid"},{"type":"and","fields":[{"type":"or","fields":[{"type":"selector","dimension":"vertical_name","value":"/"},{"type":"selector","dimension":"recharges_utilities"},{"type":"selector","dimension":"recharges"},{"type":"selector","dimension":"vertical_name","value":"RU"},{"type":"selector","dimension":"vertical_name","value":"RechargeUtilities"},{"type":"selector","dimension":"vertical_name","value":"dthRecharge"}]},{"type":"selector","dimension":"event_category","value":"mobile_prepaid"}]}]},{"type":"and","fields":[{"type":"selector","dimension":"event_category","value":"mobile_prepaid"},{"type":"and","fields":[{"type":"or","fields":[{"type":"selector","dimension":"vertical_name","value":"/"},{"type":"selector","dimension":"recharges_utilities"},{"type":"selector","dimension":"recharges"},{"type":"selector","dimension":"vertical_name","value":"RU"},{"type":"selector","dimension":"vertical_name","value":"RechargeUtilities"},{"type":"selector","dimension":"vertical_name","value":"dthRecharge"}]},{"type":"and","fields":[{"type":"selector","dimension":"event_category","value":"mobile_prepaid"},{"type":"selector","dimension":"screenname","value":"/mobile_prepaid/amount"}]}]}]},{"type":"and","fields":[{"type":"selector","dimension":"event_category","value":"mobile_prepaid"},{"type":"and","fields":[{"type":"or","fields":[{"type":"selector","dimension":"vertical_name","value":"/"},{"type":"selector","dimension":"recharges_utilities"},{"type":"selector","dimension":"recharges"},{"type":"selector","dimension":"vertical_name","value":"RU"},{"type":"selector","dimension":"vertical_name","value":"RechargeUtilities"},{"type":"selector","dimension":"vertical_name","value":"dthRecharge"}]},{"type":"and","fields":[{"type":"selector","dimension":"event_category","value":"mobile_prepaid"},{"type":"and","fields":[{"type":"selector","dimension":"screenname","value":"/mobile_prepaid/amount"},{"type":"selector","dimension":"event_action","value":"proceed_clicked"}]}]}]}]},{"type":"and","fields":[{"type":"selector","dimension":"event_category","value":"mobile_prepaid"},{"type":"and","fields":[{"type":"or","fields":[{"type":"selector","dimension":"vertical_name","value":"/"},{"type":"selector","dimension":"recharges_utilities"},{"type":"selector","dimension":"recharges"},{"type":"selector","dimension":"vertical_name","value":"RU"},{"type":"selector","dimension":"vertical_name","value":"RechargeUtilities"},{"type":"selector","dimension":"vertical_name","value":"dthRecharge"}]},{"type":"and","fields":[{"type":"selector","dimension":"event_category","value":"mobile_prepaid"},{"type":"selector","dimension":"screenname","value":"/summary/mobile/prepaid"}]}]}]},{"type":"and","fields":[{"type":"selector","dimension":"event_category","value":"mobile_prepaid"},{"type":"and","fields":[{"type":"or","fields":[{"type":"selector","dimension":"vertical_name","value":"/"},{"type":"selector","dimension":"recharges_utilities"},{"type":"selector","dimension":"recharges"},{"type":"selector","dimension":"vertical_name","value":"RU"},{"type":"selector","dimension":"vertical_name","value":"RechargeUtilities"},{"type":"selector","dimension":"vertical_name","value":"dthRecharge"}]},{"type":"and","fields":[{"type":"selector","dimension":"event_category","value":"mobile_prepaid"},{"type":"and","fields":[{"type":"selector","dimension":"screenname","value":"/summary/mobile/prepaid"},{"type":"selector","dimension":"event_action","value":"summary_page_loaded_payment_success"}]}]}]}]}]}}
-        
-        response = requests.post(api_url, json=payload, headers=headers, verify=False)
-        response.raise_for_status()
-        data = response.json()
-        return data
+        payload = json.loads(basequery)
+        response = post_request(api_url, headers, payload)
+        return response
     except requests.RequestException as e:
         print(e)
         return f"Error querying pulse: {str(e)}"
+    
+def fetch_all_segments():
+    """
+    Fetches all relevant segments for the query
+    """
+    try:
+        file_path = "data/agents/devrev/tools/Funnel Hub _ Definitions - Segment mapping.csv"
+        segments = pd.read_csv(file_path)
+        segments["Segment"] = segments["Segment Name"]
+        segments["Condition"] = segments["Segment Definition"]
+        segments.drop(columns=["Segment Name", "Segment Definition"], inplace=True)
+        return segments
+    except Exception as e:
+        print(e)
+        return f"Error fetching segments: {str(e)}"

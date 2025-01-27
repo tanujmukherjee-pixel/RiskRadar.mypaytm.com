@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 import pkg_resources
 import logging
-from llama_index.llms.azure_openai import AzureOpenAI
+from llama_index.llms.openai import OpenAI
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.core import Settings, SimpleDirectoryReader, VectorStoreIndex, load_index_from_storage, StorageContext
 
@@ -10,10 +10,7 @@ from llama_index.core import Settings, SimpleDirectoryReader, VectorStoreIndex, 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-api_key = "78323645757b409fa5ea920e66476eb4"
-azure_endpoint = "https://rc-lookup-aust-east.openai.azure.com/"
-api_version = "2023-07-01-preview"
-
+api_key = "REDACTED_OPENAI_KEY"
 
 def get_storage_path():
     """Get the storage-graph path for both development and installed modes."""
@@ -54,12 +51,9 @@ def get_query_engine():
     Sets up the query engine using Azure OpenAI for LLM and HuggingFace for embeddings.
     Configures Neo4j as a vector store if the database option is enabled.
     """
-    llm = AzureOpenAI(
-        model="gpt-35-turbo-16k",
-        deployment_name="rc-lookup-gpt4",
-        api_key=api_key,
-        azure_endpoint=azure_endpoint,
-        api_version=api_version,
+    llm = OpenAI(
+        model="gpt-4o",
+        api_key=api_key
     )
 
     embed_model = HuggingFaceEmbedding(
