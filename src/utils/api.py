@@ -18,6 +18,5 @@ def post_request(url: str, headers: dict, payload: dict) -> dict:
     Sends a POST request to the given URL with the given headers and payload.
     """
     response = requests.post(url, headers=headers, json=payload, verify=False)
-    print(response.text)
     response.raise_for_status()
     return response.json()

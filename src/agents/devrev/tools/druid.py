@@ -49,7 +49,7 @@ def fetch_base_query(funnel_id, funnel_name):
     payload = json.loads(query_context)
     payload["result_type"] = "query"
     base_query = post_request(url, headers, payload)
-    return base_query
+    return json.loads(base_query["result"][0]["query"])
 
 
 def execute_query_pulse(basequery: str, segment: str, start_date: str, end_date: str) -> str:
@@ -63,7 +63,6 @@ def execute_query_pulse(basequery: str, segment: str, start_date: str, end_date:
     :return: result of the query in json format with values as count of user visiting that page
     """ 
     try:
-        print(basequery)
         api_url = "https://paytmprod.implycloud.com/p/3f93cc1e-b9d1-4bf8-9a97-87392e98cfc6/console/druid/druid/v2"
         
         headers = {

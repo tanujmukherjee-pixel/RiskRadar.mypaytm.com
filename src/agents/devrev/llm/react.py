@@ -5,10 +5,12 @@ import os
 from .query import query_engine
 from ..tools.druid import execute_query_pulse, fetch_all_segments, get_all_funnels, fetch_base_query
 from llama_index.core import PromptTemplate
+from ....utils.trim import trim_context
 
 react_system_header_str = """\
 
 You are an RCA (Root Cause Analysis) agent designed to identify the root cause of issues. Your capabilities include answering questions, summarizing data, and performing in-depth analyses.
+Always trim the context to the most relevant information after each step.
 
 ## Approach
 
@@ -83,9 +85,10 @@ def react_query_engine():
     segments_tool = FunctionTool.from_defaults(fn=fetch_all_segments)
     funnels_tool = FunctionTool.from_defaults(fn=get_all_funnels)
     base_query_tool = FunctionTool.from_defaults(fn=fetch_base_query)
+    trim_tool = FunctionTool.from_defaults(fn=trim_context)
 
     # Create the ReAct agent
-    agent = ReActAgent.from_tools([druid_tool, segments_tool, funnels_tool, base_query_tool], llm=llm, verbose=True, max_iterations=10)
+    agent = ReActAgent.from_tools([druid_tool, segments_tool, funnels_tool, base_query_tool, trim_tool], llm=llm, verbose=True, max_iterations=20)
 
     agent.update_prompts({"agent_worker:system_prompt": react_system_prompt})
 
