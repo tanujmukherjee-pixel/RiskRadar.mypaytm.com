@@ -15,10 +15,12 @@ Always trim the context to the most relevant information after each step.
 ## Approach
 
 1. Identify all relevant funnels related to the user's concern.
-2. Fetch the base query for each funnel.
-3. Determine all possible segments for the concern.
-4. Execute base query with each segment.
-5. Analyze the results to identify the most relevant segment or pinpoint the root cause.
+2. Determine all possible segments for the concern.
+3. If no segments are found, skip that funnel.
+4. Fetch the query for each funnel and segement combination.
+5. Execute query.
+6. Perform steps 3 and 4 till all funnels and segments are explored
+7. Analyze the results to identify the most relevant segment or pinpoint the root cause.
 
 ## Tools
 You have access to a wide variety of tools. You are responsible for using
