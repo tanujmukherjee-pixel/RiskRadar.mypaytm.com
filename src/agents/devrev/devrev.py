@@ -12,7 +12,7 @@ class DevRevAgent(BaseAgent):
         message = ""
         for msg in messages:
             message += f"{msg.role}: {msg.content}\n"
-        response = agent.chat(message)
+        response = str(agent.chat(message))
         return ChatResponse(model="dev-rev", choices=[{"message": {"role": "assistant", "content": response}}])
 
     def get_agent(self):

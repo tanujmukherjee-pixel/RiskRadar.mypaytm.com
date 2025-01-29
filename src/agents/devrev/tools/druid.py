@@ -66,8 +66,7 @@ def add_segment_query(base_query, segment_query):
 
     for query in base_query["queries"]:
         for metric in query["run_time_metric"]["data"]["metrics"]:
-            metric["filters"].append({"col" : segments[0], "op" : segments[1], "value" : segments[2]})
-    print(base_query)
+            metric["filters"].append({"col" : segments[0], "op" : segments[1], "val" : segments[2]})
     return base_query
 
 
@@ -107,9 +106,7 @@ def get_segment_query(segment: str, vertical: str, product: str):
     Fetches the query for the segment
     """
     segments = fetch_all_segments(vertical, product)
-    print(segments)
     segment_query = segments[segments["Segment Name"] == segment]["Condition"].values[0]
-    print(segment_query)
     return segment_query
 
 def fetch_all_segments(vertical: str, product: str):
