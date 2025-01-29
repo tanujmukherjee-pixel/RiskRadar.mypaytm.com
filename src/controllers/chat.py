@@ -1,47 +1,52 @@
-from fastapi import APIRouter, HTTPException
-from typing import List, Optional
+from fastapi import APIRouter, HTTPException, Depends
+from typing import List, Optional, Dict
 from ..services.model import ModelService
 from ..domains.chat import ModelRequest, ChatCompletionRequest, ChatResponse
 
 router = APIRouter()
 model_service = ModelService()
 
-@router.get("/api/models", tags=["models"])
+@router.get("/v1/models", tags=["models"])
 async def list_models():
     """
     List all available models.
     """
     try:
         models = model_service.list_models()
-        return {"models": models}
+        return models  # OpenAI API typically returns a "data" field with models
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/api/complete", response_model=dict, tags=["completions"])
-async def complete_text(request: ModelRequest):
+@router.post("/v1/completions", response_model=dict, tags=["completions"])
+async def create_completion(request: ModelRequest):
     """
     Generate a text completion for a given prompt.
     """
     try:
-        response = model_service.complete_text(request.prompt, request.max_tokens, request.temperature)
-        return response
+        response = model_service.complete_text(
+            prompt=request.prompt, 
+            max_tokens=request.max_tokens, 
+            temperature=request.temperature
+        )
+        return {"choices": [{"text": response}]}  # Aligning with OpenAI's response format
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/api/chat/completion", response_model=ChatResponse, tags=["chat"])
+@router.post("/v1/chat/completions", response_model=ChatResponse, tags=["chat"])
 async def chat_completion(request: ChatCompletionRequest):
-    """
-    Generate a chat completion from a series of messages.
-    """
     try:
-        response = model_service.chat_completion(request.model, request.messages, request.max_tokens, request.temperature)
+        # Example response handling
+        response = model_service.chat_completion(
+            model_id=request.model, 
+            messages=request.messages
+        )
         return response
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
-
-@router.get("/api/models/{model_id}", tags=["models"])
-async def get_model_info(model_id: str):
+    
+@router.get("/v1/models/{model_id}", tags=["models"])
+async def retrieve_model(model_id: str):
     """
     Get information about a specific model.
     """
@@ -51,7 +56,7 @@ async def get_model_info(model_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.delete("/api/models/{model_id}/delete", tags=["models"])
+@router.delete("/v1/models/{model_id}", tags=["models"])
 async def delete_model(model_id: str):
     """
     Delete a specific model.

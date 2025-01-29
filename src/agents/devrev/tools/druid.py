@@ -5,6 +5,7 @@ import pandas as pd
 from ....utils.api import post_request, get_request
 import json
 import urllib.parse
+import time
 
 def get_all_funnels():
     """
@@ -28,13 +29,10 @@ def get_all_funnels():
     ]
     return result
 
-def fetch_base_query(funnel_id, funnel_name, segment_name, segment_query):
+def fetch_base_query(funnel_id, funnel_name, segment_name = None, segment_query = None):
     """
     Fetches the base query for the funnel
     """
-
-    if not segment_name or segment_name == "":
-        raise ValueError("Segment is required")
     
     headers = {
         "Cookie": "_clck=1upy6g3%7C2%7Cfsx%7C0%7C1833; session=.eJwtkUuP2jAYRf9K5TWtbMfxg11KQyg00CQzA2lVoc-xTTKFBOVFYTT_vZHa5ZXu4txz39DRtbYr0bxvBztDx8qgOQLsEw7S-EJjhanPQehCF9wZBr7g4FzBFDg1tZSxnuOWK86xpAUTknpYEzDUWmIoFIQTyQVhhQDATFgsmWQaF74h2KPGV5hh4YivCzz1idSaGjRD56aAs51YbD2lBoZ-YnxDH3o0_4nuQNUnwEG69y-Cf3k-7eyK_S7LfXq4DF77Mj6VQ5gvKHnoXbjMOmP7y2tuyi0MSQVpjC2t_bUL42al9I_h2nxVVTPeO8-4upeQ59Ful3VSbM_pY21lv82Cjym-JY-RufD70Dwl0YVSuwjv7WsEuz-r8bHpPPEy8uSwbIeNvMbnpRuPt5sM6yCCxSnfBO45C9I4Wyar6EDjanH4HEf8W-1JvhagcL1PujLARPjTXvTr_f_o47VtxsrYdlJxaprT5GSGhs62_54iSmH0_hdWcoyH.Z5eFmA.zQAF7VrkccTUtDO6cI5T3fV2mtM",
@@ -53,8 +51,8 @@ def fetch_base_query(funnel_id, funnel_name, segment_name, segment_query):
     payload = json.loads(query_context)
     payload["result_type"] = "query"
 
-    payload = add_segment_query(payload, segment_query)
-
+    if segment_name and segment_query:
+        payload = add_segment_query(payload, segment_query)
     base_query = post_request(url, headers, payload)
     return json.loads(base_query["result"][0]["query"])
 
@@ -70,7 +68,7 @@ def add_segment_query(base_query, segment_query):
     return base_query
 
 
-def execute_query_pulse(basequery: str, segment: str, start_date: str, end_date: str) -> str:
+def execute_query_pulse(basequery: str, start_date: str, end_date: str) -> str:
     """
     Takes query as json input and returns result of it after querrying pulse
     Data returned corresponds to the user visits to the app for the query
@@ -80,8 +78,6 @@ def execute_query_pulse(basequery: str, segment: str, start_date: str, end_date:
     :end_date: end date of the query in format "2025-01-22T00:00:00+05:30"
     :return: result of the query in json format with values as count of user visiting that page
     """ 
-    if not segment or segment == "":
-        raise ValueError("Segment is required")
     try:
         api_url = "https://paytmprod.implycloud.com/p/3f93cc1e-b9d1-4bf8-9a97-87392e98cfc6/console/druid/druid/v2"
         
@@ -118,7 +114,7 @@ def fetch_all_segments(vertical: str, product: str):
         segments = pd.read_csv(file_path)
         segments["Condition"] = segments["Segment Definition"]
         segments.drop(columns=["Segment Definition"], inplace=True)
-        filtered_segments = segments[(segments["Vertical"] == vertical or segments['Vertical'] == 'Common') & (segments["Product"] == product or segments['Product'] == 'Common')]
+        filtered_segments = segments[(segments["Vertical"] == vertical) & (segments["Product"] == product)]
         return filtered_segments.to_dict(orient="records")
     except Exception as e:
         print(e)
