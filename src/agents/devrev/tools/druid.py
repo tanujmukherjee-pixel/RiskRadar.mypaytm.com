@@ -118,7 +118,7 @@ def fetch_all_segments(vertical: str, product: str):
         segments = pd.read_csv(file_path)
         segments["Condition"] = segments["Segment Definition"]
         segments.drop(columns=["Segment Definition"], inplace=True)
-        filtered_segments = segments[(segments["Vertical"] == vertical) & (segments["Product"] == product)]
+        filtered_segments = segments[(segments["Vertical"] == vertical or segments['Vertical'] == 'Common') & (segments["Product"] == product or segments['Product'] == 'Common')]
         return filtered_segments.to_dict(orient="records")
     except Exception as e:
         print(e)
