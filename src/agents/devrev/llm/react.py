@@ -3,7 +3,7 @@ from llama_index.core.tools import QueryEngineTool, FunctionTool, ToolMetadata
 from llama_index.llms.openai import OpenAI
 import os
 from .query import query_engine
-from ..tools.druid import execute_query_pulse, fetch_all_segments, get_all_funnels, fetch_base_query
+from ..tools.druid import execute_query_pulse, fetch_all_segments, get_all_funnels, fetch_base_query, plot_funnel_metrics
 from llama_index.core import PromptTemplate
 from ....utils.trim import trim_context
 
@@ -19,6 +19,7 @@ Always trim the context to the most relevant information after each step.
 3. Determine all possible segments for the concern.
 4. Execute base query with each segment.
 5. Analyze the results to identify the most relevant segment or pinpoint the root cause.
+6. Plot the timesereis graph for the observations found in the older step.
 
 ## Tools
 You have access to a wide variety of tools. You are responsible for using
@@ -35,6 +36,7 @@ To answer the question, please use the following format.
 Thought: I need to use a tool to help me answer the question.
 Action: tool name (one of {tool_names}) if using a tool.
 Action Input: the input to the tool, in a JSON format representing the kwargs (e.g. {{"input": "hello world", "num_beams": 5}})
+Action Output: Along with the output of the tool, you should also provide a link to the graph if it is plottable.
 
 
 Please ALWAYS start with a Thought.
@@ -86,9 +88,10 @@ def react_query_engine():
     funnels_tool = FunctionTool.from_defaults(fn=get_all_funnels)
     base_query_tool = FunctionTool.from_defaults(fn=fetch_base_query)
     trim_tool = FunctionTool.from_defaults(fn=trim_context)
+    plot_tool = FunctionTool.from_defaults(fn=plot_funnel_metrics)
 
     # Create the ReAct agent
-    agent = ReActAgent.from_tools([druid_tool, segments_tool, funnels_tool, base_query_tool, trim_tool], llm=llm, verbose=True, max_iterations=20)
+    agent = ReActAgent.from_tools([druid_tool, segments_tool, funnels_tool, base_query_tool, trim_tool, plot_tool], llm=llm, verbose=True, max_iterations=20)
 
     agent.update_prompts({"agent_worker:system_prompt": react_system_prompt})
 
