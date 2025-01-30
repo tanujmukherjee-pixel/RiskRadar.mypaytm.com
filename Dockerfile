@@ -5,11 +5,8 @@ WORKDIR /agency
 
 COPY . .
 
-# Install Poetry
-RUN pip install --no-cache-dir poetry
-
-# Use Poetry to install dependencies
-RUN poetry install --no-root
+# Install dependencies using pip
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Ensure root has full permissions
 RUN mkdir -p /.cache && \
@@ -17,5 +14,5 @@ RUN mkdir -p /.cache && \
 
 EXPOSE 5000
 
-CMD ["poetry", "run", "uvicorn", "src:app", "--reload"]
+CMD ["python3", "-m", "uvicorn", "src:app", "--reload"]
 

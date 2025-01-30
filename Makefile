@@ -36,15 +36,14 @@ conda-env: source-conda
 	conda activate $(CONDA_ENV_NAME) && \
 	conda install pip -y
 
-# Install dependencies using python3
+# Install dependencies using pip
 deps: check-python
 	python3 -m pip install --upgrade pip
-	python3 -m pip install poetry
-	poetry install
+	python3 -m pip install -r requirements.txt
 
-# Install module using Poetry
+# Install module
 install: deps
-	poetry install --no-root
+	python3 -m pip install -e .
 
 # Run tests without coverage
 test: deps
@@ -112,4 +111,4 @@ docker_build_for_deployment_multiple_tags: ## Build and push Docker image with m
 
 # Run the app using uvicorn
 run:
-	poetry run uvicorn src:app --reload
+	python3 -m uvicorn src:app --reload
