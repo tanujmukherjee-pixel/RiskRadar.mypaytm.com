@@ -14,5 +14,5 @@ RUN mkdir -p /.cache && \
 
 EXPOSE 5000
 
-CMD ["python3", "-m", "uvicorn", "src:app", "--port", "5000", "--reload"]
+CMD ["python3", "-m", "uvicorn", "src:app", "--host", "0.0.0.0", "--port", "5000"]
 
