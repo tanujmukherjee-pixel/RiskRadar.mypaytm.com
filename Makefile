@@ -1,10 +1,8 @@
-.PHONY: check-system check-python source-conda conda-env venv deps install test cover lint check format clean docs run
+.PHONY: check-system check-python source-conda conda-env deps install test cover lint check format clean docs run
 
 # Environment names
-VENV_NAME := venv
 CONDA_ENV_NAME := myenv
 
-# Define Python version
 # Define Python version
 PYTHON_MAJOR := 3
 PYTHON_MINOR := 12
@@ -38,12 +36,10 @@ conda-env: source-conda
 	conda activate $(CONDA_ENV_NAME) && \
 	conda install pip -y
 
-# Create virtual environment
-venv: check-python
-	test -d $(VENV_NAME) || python3 -m venv $(VENV_NAME)
-
-# Install dependencies (both test and lint)
+# Install dependencies using python3
 deps: check-python
+	python3 -m pip install --upgrade pip
+	python3 -m pip install poetry
 	poetry install
 
 # Install module using Poetry
@@ -82,7 +78,6 @@ clean:
 	rm -rf build/
 	rm -rf dist/
 	rm -rf *.egg-info
-	rm -rf $(VENV_NAME)
 	rm -rf .pytest_cache
 	rm -rf .coverage
 	rm -rf htmlcov
