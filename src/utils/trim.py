@@ -1,16 +1,19 @@
-from llama_index.llms.openai import OpenAI
+from llama_index.llms.ollama import Ollama
 
 def trim_context(context, max_tokens=1000):
-    llm = OpenAI(
-        model="gpt-4o",
-        api_key="REDACTED_OPENAI_KEY"
+    """Trim context using local Ollama model"""
+    llm = Ollama(
+        model="deepseek-r1:8b",
+        temperature=0.5,
+        base_url="http://localhost:11434"
     )
 
-    response = llm.chat.completions.create(
-        messages=[
-            {"role": "system", "content": "You are a data expert. You are given a context and you need to trim it to the most relevant information."},
-            {"role": "user", "content": context}
-        ],
+    response = llm.complete(
+        prompt=f"""You are a data expert. You need to trim this context to the most relevant information:
+        
+        {context}
+        
+        Provide only the most relevant information.""",
         max_tokens=max_tokens
     )
-    return response.choices[0].message.content
+    return response.text

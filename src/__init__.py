@@ -1,6 +1,23 @@
-from fastapi import FastAPI
-from .controllers.chat import router as chat_router
+"""
+DevRev Agent Package
+"""
+from .chat_interface import ChatInterface
 
-app = FastAPI()
+__version__ = "0.1.0"
 
-app.include_router(chat_router)
+def create_app():
+    """For backwards compatibility with ASGI servers"""
+    from fastapi import FastAPI
+    app = FastAPI()
+    return app
+
+def main():
+    """Entry point for command-line interface"""
+    chat = ChatInterface()
+    chat.start()
+
+# This is for ASGI compatibility
+app = create_app()
+
+if __name__ == "__main__":
+    main()

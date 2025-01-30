@@ -2,15 +2,13 @@ import os
 from pathlib import Path
 import pkg_resources
 import logging
-from llama_index.llms.openai import OpenAI
+from llama_index.llms.ollama import Ollama
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.core import Settings, SimpleDirectoryReader, VectorStoreIndex, load_index_from_storage, StorageContext
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-api_key = "REDACTED_OPENAI_KEY"
 
 def get_storage_path():
     """Get the storage-graph path for both development and installed modes."""
@@ -48,12 +46,19 @@ def get_storage_path():
 
 def get_query_engine():
     """
-    Sets up the query engine using Azure OpenAI for LLM and HuggingFace for embeddings.
-    Configures Neo4j as a vector store if the database option is enabled.
+    Sets up the query engine using locally hosted Ollama with deepseek model
+    and HuggingFace for embeddings.
     """
-    llm = OpenAI(
-        model="gpt-4o",
-        api_key=api_key
+    # Initialize Ollama LLM with deepseek model and longer timeout
+    llm = Ollama(
+        model="deepseek-r1:8b",
+        temperature=0.5,
+        base_url="http://localhost:11434",
+        request_timeout=120.0,  # Increase timeout to 120 seconds
+        additional_kwargs={
+            "num_ctx": 4096,
+            "num_thread": 8
+        }
     )
 
     embed_model = HuggingFaceEmbedding(
@@ -77,9 +82,9 @@ def get_query_engine():
     # load index
     index = load_index_from_storage(storage_context)
 
-
     query_engine = index.as_query_engine(
-        include_text=True, response_mode="tree_summarize"
+        include_text=True, 
+        response_mode="tree_summarize"
     )
 
     return query_engine
