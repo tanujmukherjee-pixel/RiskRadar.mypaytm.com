@@ -29,9 +29,9 @@ def get_all_funnels():
     ]
     return result
 
-def fetch_base_query(funnel_id, funnel_name, segment_name = None, segment_query = None):
+def fetch_query(funnel_id, funnel_name, segment_query = None):
     """
-    Fetches the base query for the funnel
+    Fetches the query for the funnel for a given segment and if not provided any segment, fetches query corresponding to the funnel across all segments
     """
     
     headers = {
@@ -51,7 +51,7 @@ def fetch_base_query(funnel_id, funnel_name, segment_name = None, segment_query 
     payload = json.loads(query_context)
     payload["result_type"] = "query"
 
-    if segment_name and segment_query:
+    if segment_query:
         payload = add_segment_query(payload, segment_query)
     base_query = post_request(url, headers, payload)
     return json.loads(base_query["result"][0]["query"])

@@ -3,25 +3,24 @@ from llama_index.core.tools import QueryEngineTool, FunctionTool, ToolMetadata
 from llama_index.llms.openai import OpenAI
 import os
 from .query import query_engine
-from ..tools.druid import execute_query_pulse, fetch_all_segments, get_all_funnels, fetch_base_query
+from ..tools.druid import execute_query_pulse, fetch_all_segments, get_all_funnels, fetch_query
 from llama_index.core import PromptTemplate
 from ....utils.trim import trim_context
 
 react_system_header_str = """\
-
 You are an AI-powered Funnel Analysis Agent designed to deliver automatic summaries and insights from funnel data. Your capabilities include answering complex business questions, summarizing data, and performing in-depth analyses to identify root causes and actionable insights.
 
 ## Approach
 
 1. Funnel Identification: Identify the relevant funnel related to the user's inquiry, ensuring comprehensive coverage of the data landscape.
 
-2. Summarization Priority: For summary requests, focus on extracting and summarizing key insights from the entire funnel without detailed segment analysis unless specified.
+2. Summarization Priority: For summary requests, focus on extracting and summarizing key insights from the entire funnel. Include detailed segment analysis where applicable, based on the user's needs. Always prefer doing detailed segment analysis.
 
-3. Segment Determination (if applicable): If detailed analysis is required, determine all possible segments for the inquiry. Proceed with formulating the query for the funnel regardless of segment applicability.
+3. Segment Exploration: Always determine and explore all relevant segments for the inquiry, regardless of whether detailed segment analysis was initially specified. This ensures comprehensive insight generation.
 
-4. Query Execution: Formulate and the query for the identified funnel or segments, ensuring data relevance and precision.
+4. Query Execution: Formulate and execute queries for the identified funnel and segments, ensuring data relevance and precision.
 
-5. Insight Synthesis: Synthesize the results to generate actionable insights or a high-level summary based on the user's request aggregating the results from the funnel or segments. Also if possible, convert into conversion percentage between stages.
+5. Insight Synthesis: Synthesize the results to generate actionable insights or a high-level summary with data to back it up based on the user's request. Aggregate results from the funnel and segments, and if possible, convert them into conversion percentages between stages.
 
 6. Contextual Trimming: After each step, refine the context to focus on the most pertinent information, enhancing clarity and decision-making.
 
@@ -89,7 +88,7 @@ def react_query_engine():
     druid_tool = FunctionTool.from_defaults(fn=execute_query_pulse)
     segments_tool = FunctionTool.from_defaults(fn=fetch_all_segments)
     funnels_tool = FunctionTool.from_defaults(fn=get_all_funnels)
-    base_query_tool = FunctionTool.from_defaults(fn=fetch_base_query)
+    base_query_tool = FunctionTool.from_defaults(fn=fetch_query)
     trim_tool = FunctionTool.from_defaults(fn=trim_context)
 
     # Create the ReAct agent
