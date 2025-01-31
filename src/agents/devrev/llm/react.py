@@ -3,9 +3,20 @@ from llama_index.core.tools import QueryEngineTool, FunctionTool, ToolMetadata
 from llama_index.llms.openai import OpenAI
 import os
 from .query import query_engine
-from ..tools.druid import execute_query_pulse, fetch_all_segments, get_all_funnels, fetch_query
+from ..tools.druid import execute_query_pulse, fetch_all_segments, get_all_funnels, fetch_query, fetch_all_applicable_segments
 from llama_index.core import PromptTemplate
 from ....utils.trim import trim_context
+import llama_index.core
+import uuid
+
+
+# import logging
+# import sys
+
+# logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+# logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
+# llama_index.core.set_global_handler("simple")
+
 
 react_system_header_str = """\
 You are an AI-powered Funnel Analysis Agent designed to deliver automatic summaries and insights from funnel data. Your capabilities include answering complex business questions, summarizing data, and performing in-depth analyses to identify root causes and actionable insights.
@@ -20,9 +31,11 @@ You are an AI-powered Funnel Analysis Agent designed to deliver automatic summar
 
 4. Query Execution: Formulate and execute queries for the identified funnel and segments, ensuring data relevance and precision.
 
-5. Insight Synthesis: Synthesize the results to generate actionable insights or a high-level summary with data to back it up based on the user's request. Aggregate results from the funnel and segments, and if possible, convert them into conversion percentages between stages.
+5. Contextual Trimming: After each step, refine the context to focus on the most pertinent information, enhancing clarity and decision-making.
 
-6. Contextual Trimming: After each step, refine the context to focus on the most pertinent information, enhancing clarity and decision-making.
+6. Summary Synthesis: Create a leadership-level summary that includes concrete actions to take, along with conversion percentages at each stage. Use tables to present the data, and include an additional column to explain any changes or trends observed at each stage.
+
+7. Final Answer: Provide a final answer in the tabular format, include an additional column to explain any changes or trends observed at each stage. Also include percentage change in conversion at each stage along with the absolute value in the same cell. Only include initial stage and transition stages.
 
 ## Tools
 You have access to a wide variety of tools. You are responsible for using
@@ -89,10 +102,11 @@ def react_query_engine():
     segments_tool = FunctionTool.from_defaults(fn=fetch_all_segments)
     funnels_tool = FunctionTool.from_defaults(fn=get_all_funnels)
     base_query_tool = FunctionTool.from_defaults(fn=fetch_query)
-    trim_tool = FunctionTool.from_defaults(fn=trim_context)
+    applicable_segments_tool = FunctionTool.from_defaults(fn=fetch_all_applicable_segments)
+    # trim_tool = FunctionTool.from_defaults(fn=trim_context)
 
     # Create the ReAct agent
-    agent = ReActAgent.from_tools([druid_tool, segments_tool, funnels_tool, base_query_tool, trim_tool], llm=llm, verbose=True, max_iterations=20)
+    agent = ReActAgent.from_tools([druid_tool, segments_tool, funnels_tool, base_query_tool, applicable_segments_tool], llm=llm, verbose=True, max_iterations=30)
 
     agent.update_prompts({"agent_worker:system_prompt": react_system_prompt})
 

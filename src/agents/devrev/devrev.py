@@ -2,6 +2,9 @@ from ..base import BaseAgent
 from typing import List, Optional
 from ...domains.chat import ChatMessage, ChatResponse, Choice, Message, Usage
 from .llm.react import react_query_engine
+import uuid
+import os
+import shutil
 
 class DevRevAgent(BaseAgent):
     def __init__(self):
@@ -9,10 +12,15 @@ class DevRevAgent(BaseAgent):
 
     def chat_completion(self, messages: List[ChatMessage], max_tokens: Optional[int] = 50, temperature: Optional[float] = 0.7) -> ChatResponse:
         agent = self.get_agent()
-        message = ""
+        run_id = str(uuid.uuid4())
+
+        message = f"Session ID: {run_id}\n"
         for msg in messages:
             message += f"{msg.role}: {msg.content}\n"
         response = str(agent.chat(message))
+        folder_path = f"data/agents/devrev/temp/{run_id}"
+        if os.path.exists(folder_path):
+            shutil.rmtree(folder_path)
         return ChatResponse(
             id="unique-id",
             object="chat.completion",

@@ -5,7 +5,8 @@ import pandas as pd
 from ....utils.api import post_request, get_request
 import json
 import urllib.parse
-import time
+import uuid
+import os
 
 def get_all_funnels():
     """
@@ -29,9 +30,9 @@ def get_all_funnels():
     ]
     return result
 
-def fetch_query(funnel_id, funnel_name, segment_query = None):
+def fetch_query(funnel_id, funnel_name, session_id, segment_query = None):
     """
-    Fetches the query for the funnel for a given segment and if not provided any segment, fetches query corresponding to the funnel across all segments
+    Fetches the file path for the query for the funnel for a given segment and if not provided any segment, fetches query corresponding to the funnel across all segments
     """
     
     headers = {
@@ -54,7 +55,17 @@ def fetch_query(funnel_id, funnel_name, segment_query = None):
     if segment_query:
         payload = add_segment_query(payload, segment_query)
     base_query = post_request(url, headers, payload)
-    return json.loads(base_query["result"][0]["query"])
+    query = json.loads(base_query["result"][0]["query"])
+    generated_uuid = str(uuid.uuid4())
+    folder_path = f"data/agents/devrev/temp/{session_id}"
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+    file_path = f"data/agents/devrev/temp/{session_id}/druid_query_{generated_uuid}.json"
+    with open(file_path, "w") as file:
+        json.dump(query, file)
+
+    print(file_path)
+    return file_path
 
 def add_segment_query(base_query, segment_query):
     """
@@ -64,21 +75,28 @@ def add_segment_query(base_query, segment_query):
 
     for query in base_query["queries"]:
         for metric in query["run_time_metric"]["data"]["metrics"]:
+            if segments[1] in ["IN", "NOT IN"]:
+                print(segments[2])
+                segments[2] = str(segments[2]).split(",")
             metric["filters"].append({"col" : segments[0], "op" : segments[1], "val" : segments[2]})
+
+    print(base_query)
     return base_query
 
-
-def execute_query_pulse(basequery: str, start_date: str, end_date: str) -> str:
+def execute_query_pulse(file_path: str, start_date: str, end_date: str) -> str:
     """
-    Takes query as json input and returns result of it after querrying pulse
+    Takes file path as input and returns result of it after querrying pulse
     Data returned corresponds to the user visits to the app for the query
-    :query: druid query in json format
-    :segment: segment to be applied to the query
+    :file_path: file path of the query in json format
     :start_date: start date of the query in format "2025-01-01T00:00:00+05:30"
     :end_date: end date of the query in format "2025-01-22T00:00:00+05:30"
     :return: result of the query in json format with values as count of user visiting that page
     """ 
     try:
+
+        with open(file_path, "r") as file:
+            payload = json.load(file)
+
         api_url = "https://paytmprod.implycloud.com/p/3f93cc1e-b9d1-4bf8-9a97-87392e98cfc6/console/druid/druid/v2"
         
         headers = {
@@ -90,12 +108,10 @@ def execute_query_pulse(basequery: str, start_date: str, end_date: str) -> str:
         start_date = parser.parse(start_date).strftime(date_format)
         end_date = parser.parse(end_date).strftime(date_format)
 
-        payload = json.loads(basequery)
         response = post_request(api_url, headers, payload)
         return response
     except requests.RequestException as e:
-        print(e)
-        return f"Error querying pulse: {str(e)}"
+        return f"Error querying Funnel Data"
     
 def get_segment_query(segment: str, vertical: str, product: str):
     """
@@ -105,17 +121,25 @@ def get_segment_query(segment: str, vertical: str, product: str):
     segment_query = segments[segments["Segment Name"] == segment]["Condition"].values[0]
     return segment_query
 
-def fetch_all_segments(vertical: str, product: str):
+def fetch_all_segments():
     """
-    Fetches all relevant segments for the query
+    Fetches all segments
     """
     try:
         file_path = "data/agents/devrev/tools/Funnel Hub _ Definitions - Segment mapping.csv"
         segments = pd.read_csv(file_path)
         segments["Condition"] = segments["Segment Definition"]
         segments.drop(columns=["Segment Definition"], inplace=True)
-        filtered_segments = segments[(segments["Vertical"] == vertical) & (segments["Product"] == product)]
-        return filtered_segments.to_dict(orient="records")
+        return segments.to_dict(orient="records")
     except Exception as e:
         print(e)
         return f"Error fetching segments: {str(e)}"
+    
+def fetch_all_applicable_segments(vertical: str, product: str):
+    """
+    Fetches all applicable segments for the query
+    """
+    segments = fetch_all_segments()
+    filtered_segments = [segment for segment in segments if segment["Vertical"] == vertical and segment["Product"] == product]
+    common_segments = [segment for segment in filtered_segments if segment["Vertical"] == "Common" and segment["Product"] == "Common"]
+    return filtered_segments + common_segments
