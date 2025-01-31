@@ -78,6 +78,7 @@ Answer: Sorry, I cannot answer your query.
 ## Additional Rules
 - The answer MUST contain a sequence of bullet points that explain how you arrived at the answer. This can include aspects of the previous conversation history.
 - You MUST obey the function signature of each tool. Do NOT pass in no arguments if the function expects arguments.
+- Landing to conversion percentage is means you need to calculate the conversion percentage between first and last stage of the funnel.
 
 ## Current Conversation
 Below is the current conversation consisting of interleaving human and assistant messages.
