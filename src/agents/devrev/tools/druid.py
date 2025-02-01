@@ -80,7 +80,6 @@ def add_segment_query(base_query, segment_query):
                 segments[2] = str(segments[2]).split(",")
             metric["filters"].append({"col" : segments[0], "op" : segments[1], "val" : segments[2]})
 
-    print(base_query)
     return base_query
 
 def execute_query_pulse(file_path: str, start_date: str, end_date: str) -> str:
