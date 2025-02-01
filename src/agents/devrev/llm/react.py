@@ -2,7 +2,6 @@ from llama_index.core.agent import ReActAgent
 from llama_index.core.tools import QueryEngineTool, FunctionTool, ToolMetadata
 from llama_index.llms.openai import OpenAI
 import os
-from .query import query_engine
 from ..tools.druid import execute_query_pulse, fetch_all_segments, get_all_funnels, fetch_query, fetch_all_applicable_segments
 from llama_index.core import PromptTemplate
 from ....utils.trim import trim_context
@@ -96,7 +95,7 @@ def react_query_engine():
     react_system_prompt = PromptTemplate(react_system_header_str)
 
     # Set up the query engine tool
-    query_engine_tool = QueryEngineTool(query_engine=query_engine, metadata=ToolMetadata(name="Docs", description="Tool to perform any other queries"))
+    # query_engine_tool = QueryEngineTool(query_engine=query_engine, metadata=ToolMetadata(name="Docs", description="Tool to perform any other queries"))
 
     druid_tool = FunctionTool.from_defaults(fn=execute_query_pulse)
     segments_tool = FunctionTool.from_defaults(fn=fetch_all_segments)

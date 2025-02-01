@@ -84,4 +84,4 @@ def get_query_engine():
 
     return query_engine
 
-query_engine = get_query_engine()
+# query_engine = get_query_engine()
