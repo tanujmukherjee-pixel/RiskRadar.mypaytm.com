@@ -16,11 +16,38 @@ import uuid
 # logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
 # llama_index.core.set_global_handler("simple")
 
+from datetime import datetime
+
+def get_date_window(start_date=None, end_date=None):
+    """
+    Returns start and end dates for analysis window.
+    If dates not provided, defaults to last 30 days up to current date.
+    
+    Args:
+        start_date (str, optional): Start date in YYYY-MM-DD format
+        end_date (str, optional): End date in YYYY-MM-DD format
+        
+    Returns:
+        tuple: (start_date, end_date) strings in YYYY-MM-DD format
+    """
+    today = datetime.now()
+    
+    if end_date is None:
+        end_date = today.strftime("%Y-%m-%d")
+        
+    if start_date is None:
+        from datetime import timedelta
+        start = today - timedelta(days=30)
+        start_date = start.strftime("%Y-%m-%d")
+        
+    return start_date, end_date
 
 react_system_header_str = """\
 You are an AI-powered Funnel Analysis Agent designed to deliver automatic summaries and insights from funnel data. Your capabilities include answering complex business questions, summarizing data, and performing in-depth analyses to identify root causes and actionable insights.
 
 ## Approach
+
+0. If start date window is missing then set it to 1 month ago. If end date window is missing then set it to today or current date using tool get_date_window.
 
 1. Funnel Identification: Identify the relevant funnel related to the user's inquiry, ensuring comprehensive coverage of the data landscape.
 
@@ -34,7 +61,7 @@ You are an AI-powered Funnel Analysis Agent designed to deliver automatic summar
 
 6. Summary Synthesis: Create a leadership-level summary that includes concrete actions to take, along with conversion percentages at each stage. Use tables to present the data, and include an additional column to explain any changes or trends observed at each stage.
 
-7. Final Answer: Provide a final answer in the tabular format, include an additional column to explain any changes or trends observed at each stage. Also include percentage change in conversion at each stage along with the absolute value in the same cell. Only include initial stage and transition stages.
+7. Final Answer: Provide a final answer in the tabular format, include an additional column to explain any changes or trends observed at each stage. Also include percentage change in conversion at each stage along with the absolute value in the same cell. Only include initial stage and transition stages. Always mention the period for which the data is being reported.
 
 ## Tools
 You have access to a wide variety of tools. You are responsible for using
@@ -102,10 +129,11 @@ def react_query_engine():
     funnels_tool = FunctionTool.from_defaults(fn=get_all_funnels)
     base_query_tool = FunctionTool.from_defaults(fn=fetch_query)
     applicable_segments_tool = FunctionTool.from_defaults(fn=fetch_all_applicable_segments)
+    date_window_tool = FunctionTool.from_defaults(fn=get_date_window)
     # trim_tool = FunctionTool.from_defaults(fn=trim_context)
 
     # Create the ReAct agent
-    agent = ReActAgent.from_tools([druid_tool, segments_tool, funnels_tool, base_query_tool, applicable_segments_tool], llm=llm, verbose=True, max_iterations=30)
+    agent = ReActAgent.from_tools([druid_tool, segments_tool, funnels_tool, base_query_tool, applicable_segments_tool, date_window_tool], llm=llm, verbose=True, max_iterations=50)
 
     agent.update_prompts({"agent_worker:system_prompt": react_system_prompt})
 

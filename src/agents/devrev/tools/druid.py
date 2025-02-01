@@ -87,8 +87,8 @@ def execute_query_pulse(file_path: str, start_date: str, end_date: str) -> str:
     Takes file path as input and returns result of it after querrying pulse
     Data returned corresponds to the user visits to the app for the query
     :file_path: file path of the query in json format
-    :start_date: start date of the query in format "2025-01-01T00:00:00+05:30"
-    :end_date: end date of the query in format "2025-01-22T00:00:00+05:30"
+    :start_date: start date of the query. if not provided , ask user for the same
+    :end_date: end date of the query. if not provided , ask user for the same
     :return: result of the query in json format with values as count of user visiting that page
     """ 
     try:
@@ -106,7 +106,7 @@ def execute_query_pulse(file_path: str, start_date: str, end_date: str) -> str:
         date_format = '%Y-%m-%dT%H:%M:%S+05:30'
         start_date = parser.parse(start_date).strftime(date_format)
         end_date = parser.parse(end_date).strftime(date_format)
-
+        payload["intervals"] = f"{start_date}/{end_date}"
         response = post_request(api_url, headers, payload)
         return response
     except requests.RequestException as e:
