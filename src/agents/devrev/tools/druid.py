@@ -106,7 +106,7 @@ def execute_query_pulse(file_path: str, start_date: str, end_date: str) -> str:
         date_format = '%Y-%m-%dT%H:%M:%S+05:30'
         start_date = parser.parse(start_date).strftime(date_format)
         end_date = parser.parse(end_date).strftime(date_format)
-
+        payload["intervals"] = f"{start_date}/{end_date}"
         response = post_request(api_url, headers, payload)
         return response
     except requests.RequestException as e:
