@@ -3,6 +3,7 @@ from llama_index.core.tools import QueryEngineTool, FunctionTool, ToolMetadata
 from llama_index.llms.openai import OpenAI
 import os
 from ..tools.druid import execute_query_pulse, fetch_all_segments, get_all_funnels, fetch_query, fetch_all_applicable_segments
+from ..tools.mongo import execute_query_mongo
 from llama_index.core import PromptTemplate
 from ....utils.trim import trim_context
 import llama_index.core
@@ -17,6 +18,13 @@ import uuid
 # llama_index.core.set_global_handler("simple")
 
 from datetime import datetime
+
+
+def get_current_date():
+    """
+    Returns the current date in YYYY-MM-DD format
+    """
+    return datetime.now().strftime("%Y-%m-%d")
 
 def get_date_window(start_date=None, end_date=None):
     """
@@ -46,9 +54,7 @@ react_system_header_str = """\
 You are an AI-powered Funnel Analysis Agent designed to deliver automatic summaries and insights from funnel data. Your capabilities include answering complex business questions, summarizing data, and performing in-depth analyses to identify root causes and actionable insights.
 
 ## Approach
-1. Always start with a Thought.
-
-2. If you getting "Could not parse output" error then try for maximum 5 times.
+1. ALWAYS FETCH CURRENT DATE USING get_current_date tool and not use current date from your system.
 
 2. Identify Relevant Period: If start date window is missing then set it to 1 month ago. If end date window is missing then set it to today or current date using tool get_date_window.
 
@@ -56,7 +62,7 @@ You are an AI-powered Funnel Analysis Agent designed to deliver automatic summar
 
 4. Segment Identification: Always determine and explore all relevant segments for the inquiry, regardless of whether detailed segment analysis was initially specified. Always fetch results for ios, android, web segments. Also include any other segment which may be relevant to the inquiry.
 
-5. Query Execution: Formulate and execute queries for the identified funnel and segments, ensuring data relevance and precision. Always fetch ios, android segments.
+5. Query Execution: Formulate and execute queries for the identified funnel and segments, ensuring data relevance and precision. Always fetch ios, android segments. If getting empty response from druid or pulse then use mongo tool to get the data.
 
 6. Summary: 
 
@@ -98,7 +104,7 @@ Please use a valid JSON format for the Action Input. Do NOT do this {{'input': '
 
 If this format is used, the user will respond in the following format:
 
-Observation: tool response
+Observation: response
 
 
 You should keep repeating the above format until you have enough information
@@ -142,10 +148,12 @@ def react_query_engine():
     base_query_tool = FunctionTool.from_defaults(fn=fetch_query)
     applicable_segments_tool = FunctionTool.from_defaults(fn=fetch_all_applicable_segments)
     date_window_tool = FunctionTool.from_defaults(fn=get_date_window)
+    mongo_tool = FunctionTool.from_defaults(fn=execute_query_mongo)
+    current_date_tool = FunctionTool.from_defaults(fn=get_current_date)
     # trim_tool = FunctionTool.from_defaults(fn=trim_context)
 
     # Create the ReAct agent
-    agent = ReActAgent.from_tools([druid_tool, segments_tool, funnels_tool, base_query_tool, applicable_segments_tool, date_window_tool], llm=llm, verbose=True, max_iterations=50)
+    agent = ReActAgent.from_tools([druid_tool, segments_tool, funnels_tool, base_query_tool, applicable_segments_tool, date_window_tool, mongo_tool, current_date_tool], llm=llm, verbose=True, max_iterations=50)
 
     agent.update_prompts({"agent_worker:system_prompt": react_system_prompt})
 
