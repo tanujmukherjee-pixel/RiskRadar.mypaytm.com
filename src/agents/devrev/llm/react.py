@@ -134,7 +134,8 @@ def react_query_engine():
     """
     llm = OpenAI(
         model="gpt-4o",
-        api_key="REDACTED_OPENAI_KEY"
+        api_key="sk-D3ee4oMXbN1I2jN8ROV7pw",
+        api_base="https://lite-llm.internal.ap-south-1.staging.osmose.risk.pai.mypaytm.com/"
     )
 
     react_system_prompt = PromptTemplate(react_system_header_str)
@@ -147,13 +148,13 @@ def react_query_engine():
     funnels_tool = FunctionTool.from_defaults(fn=get_all_funnels)
     base_query_tool = FunctionTool.from_defaults(fn=fetch_query)
     applicable_segments_tool = FunctionTool.from_defaults(fn=fetch_all_applicable_segments)
-    date_window_tool = FunctionTool.from_defaults(fn=get_date_window)
+    # date_window_tool = FunctionTool.from_defaults(fn=get_date_window)
     mongo_tool = FunctionTool.from_defaults(fn=execute_query_mongo)
     current_date_tool = FunctionTool.from_defaults(fn=get_current_date)
     # trim_tool = FunctionTool.from_defaults(fn=trim_context)
 
     # Create the ReAct agent
-    agent = ReActAgent.from_tools([druid_tool, segments_tool, funnels_tool, base_query_tool, applicable_segments_tool, date_window_tool, mongo_tool, current_date_tool], llm=llm, verbose=True, max_iterations=50)
+    agent = ReActAgent.from_tools([druid_tool, segments_tool, funnels_tool, base_query_tool, applicable_segments_tool, mongo_tool, current_date_tool], llm=llm, verbose=True, max_iterations=50)
 
     agent.update_prompts({"agent_worker:system_prompt": react_system_prompt})
 
