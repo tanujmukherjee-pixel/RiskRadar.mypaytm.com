@@ -14,7 +14,4 @@ RUN mkdir -p /.cache && \
 
 EXPOSE 5000
 
-# Set environment variables for timeout
-ENV UVICORN_TIMEOUT_KEEP_ALIVE=120
-
-CMD python3 -m uvicorn src:app --host 0.0.0.0 --port 5000 --timeout-keep-alive $UVICORN_TIMEOUT_KEEP_ALIVE
+CMD ["python3", "-m", "uvicorn", "src:app", "--host", "0.0.0.0", "--port", "5000", "--timeout-keep-alive", "300"]
