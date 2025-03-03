@@ -8,12 +8,22 @@ import urllib.parse
 import uuid
 import os
 
+pulse_cookie = os.getenv("PULSE_COOKIE")
+print(pulse_cookie)
+
+imply_cookie = os.getenv("IMPLY_COOKIE")
+print(imply_cookie)
+
 def get_all_funnels():
     """
     Fetches all the funnels from the druid
     """
+
+    if not pulse_cookie:
+        raise ValueError("PULSE_COOKIE environment variable is not set")
+
     headers = {
-            "Cookie": "_clck=1upy6g3%7C2%7Cfsx%7C0%7C1833; session=.eJwtkUuP2jAYRf9K5TWtbMfxg11KQyg00CQzA2lVoc-xTTKFBOVFYTT_vZHa5ZXu4txz39DRtbYr0bxvBztDx8qgOQLsEw7S-EJjhanPQehCF9wZBr7g4FzBFDg1tZSxnuOWK86xpAUTknpYEzDUWmIoFIQTyQVhhQDATFgsmWQaF74h2KPGV5hh4YivCzz1idSaGjRD56aAs51YbD2lBoZ-YnxDH3o0_4nuQNUnwEG69y-Cf3k-7eyK_S7LfXq4DF77Mj6VQ5gvKHnoXbjMOmP7y2tuyi0MSQVpjC2t_bUL42al9I_h2nxVVTPeO8-4upeQ59Ful3VSbM_pY21lv82Cjym-JY-RufD70Dwl0YVSuwjv7WsEuz-r8bHpPPEy8uSwbIeNvMbnpRuPt5sM6yCCxSnfBO45C9I4Wyar6EDjanH4HEf8W-1JvhagcL1PujLARPjTXvTr_f_o47VtxsrYdlJxaprT5GSGhs62_54iSmH0_hdWcoyH.Z5eFmA.zQAF7VrkccTUtDO6cI5T3fV2mtM",
+            "Cookie": pulse_cookie,
             "Content-Type": "application/json",
         }
 
@@ -36,7 +46,7 @@ def fetch_query(funnel_id, funnel_name, session_id, segment_query = None):
     """
     
     headers = {
-        "Cookie": "_clck=1upy6g3%7C2%7Cfsx%7C0%7C1833; session=.eJwtkUuP2jAYRf9K5TWtbMfxg11KQyg00CQzA2lVoc-xTTKFBOVFYTT_vZHa5ZXu4txz39DRtbYr0bxvBztDx8qgOQLsEw7S-EJjhanPQehCF9wZBr7g4FzBFDg1tZSxnuOWK86xpAUTknpYEzDUWmIoFIQTyQVhhQDATFgsmWQaF74h2KPGV5hh4YivCzz1idSaGjRD56aAs51YbD2lBoZ-YnxDH3o0_4nuQNUnwEG69y-Cf3k-7eyK_S7LfXq4DF77Mj6VQ5gvKHnoXbjMOmP7y2tuyi0MSQVpjC2t_bUL42al9I_h2nxVVTPeO8-4upeQ59Ful3VSbM_pY21lv82Cjym-JY-RufD70Dwl0YVSuwjv7WsEuz-r8bHpPPEy8uSwbIeNvMbnpRuPt5sM6yCCxSnfBO45C9I4Wyar6EDjanH4HEf8W-1JvhagcL1PujLARPjTXvTr_f_o47VtxsrYdlJxaprT5GSGhs62_54iSmH0_hdWcoyH.Z5eFmA.zQAF7VrkccTUtDO6cI5T3fV2mtM",
+        "Cookie": pulse_cookie,
         "Content-Type": "application/json",
     }
     query_context = get_request(f"https://pulse.bi.mypaytm.com/api/v1/chart/{funnel_id}", headers)["result"]["query_context"]
@@ -97,9 +107,12 @@ def execute_query_pulse(file_path: str, start_date: str, end_date: str) -> str:
             payload = json.load(file)
 
         api_url = "https://paytmprod.implycloud.com/p/3f93cc1e-b9d1-4bf8-9a97-87392e98cfc6/console/druid/druid/v2"
-        
+
+        if not imply_cookie:
+            raise ValueError("IMPLY_COOKIE environment variable is not set")
+
         headers = {
-            "Cookie": "connect.sid=s%3AWmz6QbXicl0HceKt7A1tpn3Nf0ytxqqp.VcjszXj2l%2B3EGpKCCPDixB4bSSltp4IjkNTyENkpEpg",
+            "Cookie": imply_cookie,
             "Content-Type": "application/json",
         }
 
