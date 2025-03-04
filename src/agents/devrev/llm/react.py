@@ -133,9 +133,9 @@ def react_query_engine():
     Creates and returns a ReAct agent that utilizes both the query engine and Kibana logs fetcher.
     """
     llm = OpenAI(
-        model="gpt-4o",
-        api_key="sk-D3ee4oMXbN1I2jN8ROV7pw",
-        api_base="https://lite-llm.internal.ap-south-1.staging.osmose.risk.pai.mypaytm.com/"
+        model=os.environ.get("LLM_MODEL"),
+        api_key=os.environ.get("OPENAI_API_KEY"),
+        api_base=os.environ.get("OPENAI_API_BASE")
     )
 
     react_system_prompt = PromptTemplate(react_system_header_str)
