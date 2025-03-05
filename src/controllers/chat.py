@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException, Depends
-from typing import List, Optional, Dict
+from fastapi import APIRouter, HTTPException, Depends, Request
+from typing import List, Optional, Dict, AsyncGenerator
+from fastapi.responses import StreamingResponse
 from ..services.model import ModelService
 from ..domains.chat import ModelRequest, ChatCompletionRequest, ChatResponse
-
+import json
 router = APIRouter()
 model_service = ModelService()
 
@@ -32,19 +33,36 @@ async def create_completion(request: ModelRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/v1/chat/completions", response_model=ChatResponse, tags=["chat"])
-async def chat_completion(request: ChatCompletionRequest):
-    try:
-        # Example response handling
-        response = model_service.chat_completion(
-            model_id=request.model, 
-            messages=request.messages
+@router.post("/v1/chat/completions", tags=["chat"])
+async def chat_completion(request: ChatCompletionRequest, fastapi_request: Request):
+    # Log the Accept header
+    accept_header = fastapi_request.headers.get('accept')
+    print(f"Accept header: {accept_header}")
+
+    async def event_generator():
+        try:
+            async for chunk in model_service.chat_completion(
+                model_id=request.model, 
+                messages=request.messages
+            ):
+                # Directly yield the JSON object as bytes
+                yield f"data: {json.dumps(chunk.model_dump())}\n\n".encode('utf-8')  # Format as SSE data
+        except Exception as e:
+            print(e)
+            raise HTTPException(status_code=500, detail=str(e))
+
+    if request.stream:
+        return StreamingResponse(
+            event_generator(),
+            media_type='text/event-stream'
         )
+    else:
+        # Collect all chunks into a single response
+        response = ""
+        async for chunk in event_generator():
+            response = chunk
         return response
-    except Exception as e:
-        print(e)
-        raise HTTPException(status_code=500, detail=str(e))
-    
+
 @router.get("/v1/models/{model_id}", tags=["models"])
 async def retrieve_model(model_id: str):
     """
