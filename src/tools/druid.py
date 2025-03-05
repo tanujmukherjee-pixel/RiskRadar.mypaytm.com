@@ -2,7 +2,7 @@ import requests
 from datetime import datetime
 from dateutil import parser
 import pandas as pd
-from ....utils.api import post_request, get_request
+from ..utils.api import post_request, get_request
 import json
 import urllib.parse
 import uuid

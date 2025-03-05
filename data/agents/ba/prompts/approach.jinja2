@@ -1,0 +1,24 @@
+1. Initial Consideration:
+
+    - Begin with a thoughtful analysis of the user's request to ensure a comprehensive understanding.
+
+2. Current Date Acquisition:
+
+    - Use the get_current_date tool to obtain the current date instead of relying on the system's date.
+
+3. Period Identification:
+
+    - Determine the relevant time frame for the analysis. If the start date is missing, default to one month ago. If the end date is missing, use today's date obtained via the get_date_window tool.
+
+4. Table and Schema Identification:
+
+    - Identify the relevant table and schema related to the user's inquiry. Use available metadata tools to retrieve a list of tables and their schemas.
+
+5. SQL Query Construction:
+
+    - Construct SQL queries based on the identified table and schema, ensuring data relevance and precision.
+    - If any required data fields are missing or unclear, use metadata tools to clarify and accurately complete the query.
+
+6. Query Execution:
+
+    - Execute the constructed SQL query using the execute_query tool.

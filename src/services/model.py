@@ -1,13 +1,14 @@
 from typing import Dict, List, Optional, AsyncGenerator
 from ..agents.base import BaseAgent
 from ..agents.devrev.devrev import DevRevAgent
+from ..agents.ba.ba import BaAgent
 from ..domains.chat import ModelResponse, ModelsResponse, ChatMessage, ChatResponse
-import asyncio
 
 class ModelService:
     def __init__(self):
         self.agents : Dict[str, BaseAgent] = {
-            "dev-rev" : DevRevAgent()
+            "dev-rev" : DevRevAgent(),
+            "ba" : BaAgent()
         }
 
     async def chat_completion(self, model_id: str, messages: List[ChatMessage], max_tokens: Optional[int] = 50, temperature: Optional[float] = 0.7) -> AsyncGenerator[ChatResponse, None]:

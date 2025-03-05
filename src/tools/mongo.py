@@ -2,7 +2,7 @@ import requests
 from datetime import datetime
 from dateutil import parser
 import pandas as pd
-from ....utils.api import get_request
+from ..utils.api import get_request
 
 def execute_query_mongo(funnel_id: str, start_date: str, end_date: str) -> str:
     """
