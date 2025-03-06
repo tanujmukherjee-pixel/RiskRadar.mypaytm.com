@@ -2,7 +2,7 @@ from ..base import BaseAgent
 from llama_index.core.tools import FunctionTool
 from ...utils.time import get_current_date
 from ...tools.cdp import fetch_all_relevant_tables, fetch_table_schema
-from ...tools.starburst import execute_query
+from ...tools.starburst import execute_query, fetch_permitted_schemas
 
 class BaAgent(BaseAgent):
     def __init__(self):
@@ -16,4 +16,5 @@ class BaAgent(BaseAgent):
         current_date_tool = FunctionTool.from_defaults(fn=get_current_date)
         fetch_table_schema_tool = FunctionTool.from_defaults(fn=fetch_table_schema)
         execute_query_tool = FunctionTool.from_defaults(fn=execute_query)
-        return [fetch_relevant_tables_tool, current_date_tool, fetch_table_schema_tool, execute_query_tool]
+        fetch_permitted_schemas_tool = FunctionTool.from_defaults(fn=fetch_permitted_schemas)
+        return [fetch_relevant_tables_tool, current_date_tool, fetch_table_schema_tool, execute_query_tool, fetch_permitted_schemas_tool]

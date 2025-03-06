@@ -1,9 +1,9 @@
 import pandas as pd
 from ..utils.api import get_request
 
-def fetch_all_relevant_tables(domain: str):
+def fetch_all_relevant_tables(schema: str):
     """
-    Fetches all the relevant tables from the cdp based on domain
+    Fetches all the relevant tables from the cdp based on schema
     """
     url = f"http://dataset-service-prod.mm7pbnhhzr.ap-south-1.elasticbeanstalk.com/v2/datasets"
     response = get_request(url, None)
@@ -12,14 +12,14 @@ def fetch_all_relevant_tables(domain: str):
     df = df[df['status'] == 'ACTIVE'][['id', 'name', 'description']]
 
     # Filter rows where tag appears in either name or description (case-insensitive)
-    df = df[df['name'].str.contains(domain, case=False, na=False) | 
-            df['description'].str.contains(domain, case=False, na=False)]
+    df = df[df['name'].str.contains(schema, case=False, na=False) | 
+            df['description'].str.contains(schema, case=False, na=False)]
 
     return df.to_dict(orient="records")
 
 def fetch_table_schema(id: str):
     """
-    Fetches the schema of the table from the cdp
+    Fetches the schema of the table from the cdp based on dataset id
     """
     url = f"http://dataset-service-prod.mm7pbnhhzr.ap-south-1.elasticbeanstalk.com/v2/datasets/{id}"
     response = get_request(url, None)

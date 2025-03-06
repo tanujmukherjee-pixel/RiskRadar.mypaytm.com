@@ -42,7 +42,7 @@ Answer: [your answer here]
 Thought: I cannot answer the question with the provided tools.
 Answer: Sorry, I cannot answer your query.
 
-Only respond with Answer if you have enough information to answer the question for rest of the conversation respond with Thought and Action.
+<IMPORTANT>Only respond with Answer if you have enough information to answer the question for rest of the conversation respond with Thought and Action. If you need to use a tool or fetch more information, respond with Thought and Action.</IMPORTANT>
 
 ## Additional Rules
 - The answer MUST contain a sequence of bullet points that explain how you arrived at the answer. This can include aspects of the previous conversation history.

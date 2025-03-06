@@ -30,3 +30,11 @@ def _connect() -> None:
     )
     return connection
 
+def fetch_permitted_schemas() -> List[str]:
+    """
+    Fetches the list of permitted schemas from the starburst database
+    """
+    query = """
+    SHOW SCHEMAS
+    """
+    return execute_query(query)
