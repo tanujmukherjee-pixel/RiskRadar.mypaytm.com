@@ -56,6 +56,43 @@ def get_commits(repo_slug: str, branch: str = "main") -> List[Dict]:
     
     return commits
 
+def analyze_contributions(repo_slug: str, branch: str) -> Dict:
+    """Analyze contributor statistics"""
+    commits = get_commits(repo_slug, branch)
+    stats = {
+        "total_commits": len(commits),
+        "contributors": {},
+        "agent_commits": 0,
+        "developer_commits": 0
+    }
+    
+    for commit in commits:
+        author = commit.get("author", {})
+        name = author.get("user", {}).get("display_name", author.get("raw", "Unknown"))
+        
+        if name not in stats["contributors"]:
+            stats["contributors"][name] = {
+                "commits": 0,
+                "is_agent": "devin" in name.lower(),
+                "lines_changed": 0,
+                "commit_messages": []
+            }
+        
+        stats["contributors"][name]["commits"] += 1
+        stats["contributors"][name]["commit_messages"].append(commit.get("message", ""))
+        
+        if stats["contributors"][name]["is_agent"]:
+            stats["agent_commits"] += 1
+        else:
+            stats["developer_commits"] += 1
+    
+    # Calculate percentages
+    for name, contributor in stats["contributors"].items():
+        contributor["percentage"] = (contributor["commits"] / stats["total_commits"]) * 100 if stats["total_commits"] > 0 else 0
+    
+    return stats
+
+
 def get_all_repositories(page: int = 1) -> List[Dict]:
     """Get all repositories"""
     url = f"{base_url}/repositories/{workspace}?page={page}&sort=-updated_on"
