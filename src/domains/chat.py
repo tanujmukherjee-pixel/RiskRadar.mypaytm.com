@@ -38,7 +38,8 @@ class ChatCompletionRequest(BaseModel):
 
 class Message(BaseModel):
     role: str
-    content: str
+    content: Optional[str] = None
+    reasoning_content: Optional[str] = None
 
 class Choice(BaseModel):
     index: int

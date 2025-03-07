@@ -1,19 +1,24 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, AsyncGenerator
 from ..agents.base import BaseAgent
-from ..agents.devrev.devrev import DevRevAgent
+from ..agents.funnel.funnel import FunnelAgent
+from ..agents.ba.ba import BaAgent
+from ..agents.bitbucket.bitbucket import BitbucketAgent
 from ..domains.chat import ModelResponse, ModelsResponse, ChatMessage, ChatResponse
 
 class ModelService:
     def __init__(self):
         self.agents : Dict[str, BaseAgent] = {
-            "dev-rev" : DevRevAgent()
+            "funnel" : FunnelAgent(),
+            "ba" : BaAgent(),
+            "bitbucket" : BitbucketAgent()
         }
 
-    def chat_completion(self, model_id: str, messages: List[ChatMessage], max_tokens: Optional[int] = 50, temperature: Optional[float] = 0.7) -> ChatResponse:
+    async def chat_completion(self, model_id: str, messages: List[ChatMessage], max_tokens: Optional[int] = 50, temperature: Optional[float] = 0.7) -> AsyncGenerator[ChatResponse, None]:
         agent = self.agents.get(model_id)
         if not agent:
             raise ValueError(f"Model {model_id} not found.")
-        return agent.chat_completion(messages, max_tokens, temperature)
+        async for response_chunk in agent.chat_completion(messages, max_tokens, temperature):
+            yield response_chunk
 
     def list_models(self) -> ModelsResponse:
         return ModelsResponse(object="list", data=[ModelResponse(id=model_id, object="model", created=0, owned_by="dev-rev") for model_id in self.agents.keys()])

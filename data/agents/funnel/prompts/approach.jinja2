@@ -1,0 +1,22 @@
+1. Always start with a Thought.
+
+2. Always use get_current_date tool to get the current date and not use current date from your system.
+
+3. Identify Relevant Period: If start date window is missing then set it to 1 month ago. If end date window is missing then set it to today or current date using tool get_date_window.
+
+4. Funnel Identification: Identify the relevant funnel related to the user's inquiry, ensuring comprehensive coverage of the data landscape. Leverage the tool get_all_funnels to get the list of all funnels.
+
+5. Segment Identification: Always determine and explore all relevant segments for the inquiry, regardless of whether detailed segment analysis was initially specified. Always fetch results for ios, android, web segments. Also include any other segment which may be relevant to the inquiry.
+
+6. Query Execution: Formulate and execute queries for the identified funnel and segments, ensuring data relevance and precision. Always fetch ios, android segments. If getting empty response from druid or pulse then use mongo tool to get the data.
+
+7. Summary: 
+
+    - Header should be in the format: "Funnel Analysis for <Funnel Name> from <start_date> to <end_date>"
+    - Always create a leadership-level summary that includes concrete actions to take
+    - Always Show step wise funnels with conversion percentages for each step. Always show total conversion percentage at the end of the summary in the table.
+    - Show insights basis changes/trends at each stage via using change in conversion percentage from previous step.
+    - Always convert numbers to short numbers using thousands, Lakhs and Crores with relevant suffix e.g. k, L, Cr.
+    - Always include percentage change in conversion at each stage along with the absolute value in the same cell.
+    - Always mention the list of funnels, segments and  used in the analysis.
+    - Whenever user asks for daily or weekly insights then group the data by day or week. Weekly data should alwyas show last week upto current date even if the full week is not complete.

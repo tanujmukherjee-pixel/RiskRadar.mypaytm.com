@@ -3,19 +3,18 @@ name = "agency"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "Anshul",email = "anshul1.chauhan@paytm.com"}
+    {name = "Anshul", email = "anshul1.chauhan@paytm.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.12,<4.0"
-dependencies = [
-    "fastapi (>=0.115.6,<0.116.0)",
-    "uvicorn (>=0.34.0,<0.35.0)",
-    "llama-index (>=0.12.12,<0.13.0)",
-    "llama-index-embeddings-huggingface (>=0.5.1,<0.6.0)",
-    "llama-index-llms-openai (>=0.3.14,<0.4.0)"
-]
+dynamic = ["dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
 
 
+[tool.poetry.dependencies]
+fastapi = "^0.115.8"
 [build-system]
 requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
