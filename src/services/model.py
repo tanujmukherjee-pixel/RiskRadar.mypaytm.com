@@ -1,14 +1,16 @@
 from typing import Dict, List, Optional, AsyncGenerator
 from ..agents.base import BaseAgent
-from ..agents.devrev.devrev import DevRevAgent
+from ..agents.funnel.funnel import FunnelAgent
 from ..agents.ba.ba import BaAgent
+from ..agents.bitbucket.bitbucket import BitbucketAgent
 from ..domains.chat import ModelResponse, ModelsResponse, ChatMessage, ChatResponse
 
 class ModelService:
     def __init__(self):
         self.agents : Dict[str, BaseAgent] = {
-            "dev-rev" : DevRevAgent(),
-            "ba" : BaAgent()
+            "funnel" : FunnelAgent(),
+            "ba" : BaAgent(),
+            "bitbucket" : BitbucketAgent()
         }
 
     async def chat_completion(self, model_id: str, messages: List[ChatMessage], max_tokens: Optional[int] = 50, temperature: Optional[float] = 0.7) -> AsyncGenerator[ChatResponse, None]:

@@ -4,9 +4,9 @@ from ...tools.druid import execute_query_pulse, fetch_all_segments, get_all_funn
 from ...tools.mongo import execute_query_mongo
 from ...utils.time import get_current_date
 
-class DevRevAgent(BaseAgent):
+class FunnelAgent(BaseAgent):
     def __init__(self):
-        super().__init__("devrev",[])
+        super().__init__("funnel",[])
         self.tools = self.get_tools()
     
     def get_tools(self):

@@ -12,8 +12,10 @@
 
 4. Table and Schema Identification:
 
-    - Fetch the list of permitted schemas using the fetch_permitted_schemas tool.
     - Identify the relevant table and schema related to the user's inquiry. Use available metadata tools to retrieve a list of tables and their schemas.
+    - Use tool fetch_all_relevant_tables to get the list of tables related to the user's inquiry.
+    - Fetch the list of permitted schemas using the fetch_permitted_schemas tool.
+    - If the user's request is related to a table that is not in the list of permitted schemas, inform the user that the table is not permitted.
 
 5. SQL Query Construction:
 
@@ -24,3 +26,6 @@
 6. Query Execution:
 
     - Execute the constructed SQL query using the execute_query tool.
+    - Do not execute any query other than that to fetch data from the table. Dont try to find schemas or tables using query execution use other tools.
+    - If recieved error TABLE_NOT_FOUND, user would not have access to the table. Try to find the different table name and schema that might be helpful. 
+    - Keep trying until the query is executed successfully.
