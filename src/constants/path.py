@@ -10,3 +10,4 @@ APPROACH_PROMPT_FILE = "approach.jinja2"
 
 OUTPUT_PROMPT_FILE = "output.jinja2"
 
+TOOLS_PATH = "data/tools/{tool_name}.py"

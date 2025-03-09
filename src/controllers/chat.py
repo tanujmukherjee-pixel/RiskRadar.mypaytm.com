@@ -1,11 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
 from typing import List, Optional, Dict, AsyncGenerator
 from fastapi.responses import StreamingResponse
-from ..services.model import ModelService
+from ..services.model import model_service
 from ..domains.chat import ModelRequest, ChatCompletionRequest, ChatResponse
 import json
 router = APIRouter()
-model_service = ModelService()
 
 @router.get("/v1/models", tags=["models"])
 async def list_models():

@@ -1,31 +1,33 @@
-from typing import Dict, List, Optional, AsyncGenerator
+from typing import Dict, List, Optional, AsyncGenerator, Any
 from ..agents.base import BaseAgent
 from ..agents.funnel.funnel import FunnelAgent
 from ..agents.ba.ba import BaAgent
 from ..agents.bitbucket.bitbucket import BitbucketAgent
 from ..domains.chat import ModelResponse, ModelsResponse, ChatMessage, ChatResponse
+from ..rags.base import BaseRAG
 
 class ModelService:
     def __init__(self):
-        self.agents : Dict[str, BaseAgent] = {
+        self.models : Dict[str, Any] = {
             "funnel" : FunnelAgent(),
             "ba" : BaAgent(),
-            "bitbucket" : BitbucketAgent()
+            "bitbucket" : BitbucketAgent(),
+            "neo4j" : BaseRAG("neo4j")
         }
 
     async def chat_completion(self, model_id: str, messages: List[ChatMessage], max_tokens: Optional[int] = 50, temperature: Optional[float] = 0.7) -> AsyncGenerator[ChatResponse, None]:
-        agent = self.agents.get(model_id)
-        if not agent:
+        model = self.models.get(model_id)
+        if not model:
             raise ValueError(f"Model {model_id} not found.")
-        async for response_chunk in agent.chat_completion(messages, max_tokens, temperature):
+        async for response_chunk in model.chat_completion(messages, max_tokens, temperature):
             yield response_chunk
 
     def list_models(self) -> ModelsResponse:
-        return ModelsResponse(object="list", data=[ModelResponse(id=model_id, object="model", created=0, owned_by="dev-rev") for model_id in self.agents.keys()])
+        return ModelsResponse(object="list", data=[ModelResponse(id=model_id, object="model", created=0, owned_by="system") for model_id in self.models.keys()])
     
     def get_model_info(self, model_id: str) -> dict:
-        agent = self.agents.get(model_id)
-        if not agent:
+        model = self.models.get(model_id)
+        if not model:
             raise ValueError(f"Model {model_id} not found.")
         return {
             "model_id": model_id,
@@ -35,3 +37,8 @@ class ModelService:
     
     def delete_model(self, model_id: str):
         raise NotImplementedError("Delete model not implemented")
+    
+    def add_model(self, model_id: str, model: BaseAgent):
+        self.models[model_id] = model
+
+model_service = ModelService()

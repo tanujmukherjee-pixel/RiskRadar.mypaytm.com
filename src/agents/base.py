@@ -6,7 +6,9 @@ from ..services.react import react_query_engine
 from ..services.tools import Tools
 from ..utils.file import read_file
 from ..constants.path import SYSTEM_PROMPT_FILE, APPROACH_PROMPT_FILE, OUTPUT_PROMPT_FILE, PROMPTS_PATH
-
+import os
+import shutil
+from ..services.tools import tools_service
 class BaseAgent:
 
     agent_name = "default"
@@ -18,8 +20,8 @@ class BaseAgent:
         self.system_prompt = read_file(f"{PROMPTS_PATH}{SYSTEM_PROMPT_FILE}".format(agent_name=agent_name))
         self.approach_prompt = read_file(f"{PROMPTS_PATH}{APPROACH_PROMPT_FILE}".format(agent_name=agent_name))
         self.output_prompt = read_file(f"{PROMPTS_PATH}{OUTPUT_PROMPT_FILE}".format(agent_name=agent_name))
-        for tool in tools:
-            self.tools.append(Tools.get_tool(tool))
+        for tool_name in tools:
+            self.tools.append(tools_service.get_tool(tool_name))
         self.agent = self.get_agent()
 
     def get_agent(self):
@@ -85,3 +87,11 @@ class BaseAgent:
                 )
             ]
         )
+
+        temp_path = f"data/agents/{self.agent_name}/temp/{run_id}"
+
+        try:
+            if os.path.exists(temp_path):
+                shutil.rmtree(temp_path)
+        except Exception as e:
+            print(f"Error cleaning up temporary path: {e}")

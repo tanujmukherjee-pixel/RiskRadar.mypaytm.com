@@ -1,0 +1,39 @@
+Segment Name,Segment Definition,Vertical,Product
+iOS,clientid == iosapp,Common,Common
+Android,clientid == androidapp,Common,Common
+New User,isnewuser == true,Common,Common
+New Device,isnewdevice == true,Common,Common
+Logged in Users,isloggedin == true,Common,Common
+Merchant,ismerchant == true,Common,Common
+App version above 10.40,appversion regex ^10\.(4[1-9]|[5-9][0-9])\.[0-9]+$,Common,Common
+Electricity New User,"ru_electricity_user_cohort IN New,NE",Recharge,Electricity
+Electricity Repeat User,ru_electricity_user_cohort == Repeat,Recharge,Electricity
+Electricity React User,ru_electricity_user_cohort == React,Recharge,Electricity
+DTH New User,"ru_dth_user_cohort IN New,NE",Recharge,DTH
+DTH Repeat User,ru_dth_user_cohort == Repeat,Recharge,DTH
+DTH React User,ru_dth_user_cohort == React,Recharge,DTH
+Mobile Prepaid New User,"ru_mob_prepaid_user_cohort IN New,NE",Recharge,Prepaid
+Mobile Prepaid Repeat User,ru_mob_prepaid_user_cohort == Repeat,Recharge,Prepaid
+Mobile Prepaid React User,ru_mob_prepaid_user_cohort == React,Recharge,Prepaid
+Mobile Postpaid New User,"ru_mob_postpaid_user_cohort IN New,NE",Recharge,Postpaid
+Mobile Postpaid Repeat User,ru_mob_postpaid_user_cohort == Repeat,Recharge,Postpaid
+Mobile Postpaid React User,ru_mob_postpaid_user_cohort == React,Recharge,Postpaid
+Mobile Fastag New User,"ru_fastag_user_cohort IN New,NE",Recharge,Fastag
+Mobile Fastag Repeat User,ru_fastag_user_cohort == Repeat,Recharge,Fastag
+Mobile Fastag React User,ru_fastag_user_cohort == React,Recharge,Fastag
+Insurance 2W New User,ins_2w_user_type == New,Insurance,2 Wheeler
+Insurance 2W Returning User,ins_2w_user_type == Returning,Insurance,2 Wheeler
+Insurance 4W New User,ins_4w_user_type == New,Insurance,4 Wheeler
+Insurance 4W Returning User,ins_4w_user_type == Returning,Insurance,4 Wheeler
+RU Loan User Cohort New,"ru_loan_user_cohort IN New,NE",Recharge,Loan
+RU Loan User Cohort Repeat,ru_loan_user_cohort == Repeat,Recharge,Loan
+RU Loan User Cohort React,ru_loan_user_cohort == React,Recharge,Loan
+RU Insurance User Cohort New,"ru_insurance_user_cohort IN New,NE",Recharge,Insurance
+RU Insurance User Cohort Repeat,ru_insurance_user_cohort == Repeat,Recharge,Insurance
+RU Insurance User Cohort React,ru_insurance_user_cohort == React,Recharge,Insurance
+RU BBLL User Cohort New,"ru_bbll_user_cohort IN New,NE",Recharge,BBLL
+RU BBLL User Cohort Repeat,ru_bbll_user_cohort == Repeat,Recharge,BBLL
+RU BBLL User Cohort React,ru_bbll_user_cohort == React,Recharge,BBLL
+RU Onus CC User Cohort New,"ru_onuscc_user_cohort IN New,NE",Recharge,Onus CC
+RU Onus CC User Cohort Repeat,ru_onuscc_user_cohort == Repeat,Recharge,Onus CC
+RU Onus CC User Cohort React,ru_onuscc_user_cohort == React,Recharge,Onus CC

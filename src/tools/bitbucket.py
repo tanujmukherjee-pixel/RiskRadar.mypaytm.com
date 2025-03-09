@@ -102,3 +102,10 @@ def get_all_repositories(page: int = 1) -> List[Dict]:
     except Exception as e:
         return {"error": str(e)}
     
+def call_bitbucket_api(url: str) -> Dict:
+    """Call the Bitbucket API"""
+    try:
+        response = get_request(url, _create_auth_header())
+        return response
+    except Exception as e:
+        return {"error": str(e)}
