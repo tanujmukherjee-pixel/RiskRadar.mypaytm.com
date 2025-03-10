@@ -5,7 +5,7 @@ from ..constants.path import TOOLS_PATH
 from typing import List
 from ..repositories.tool import tool_repository
 from ..utils.file import write_file
-
+import os
 class Tools:
     def __init__(self):
         self.tools : Dict[str, FunctionTool] = {}
@@ -69,5 +69,10 @@ class Tools:
             contents[tool_name] = file_content
         return contents
 
+
+    def delete_tool(self, tool_name: str) -> None:
+        tool_repository.delete_tool(tool_name)
+        self.tools.pop(tool_name)
+        os.remove(TOOLS_PATH.format(tool_name=tool_name))
 
 tools_service = Tools()

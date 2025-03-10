@@ -25,6 +25,11 @@ class AgentService:
         agent = BaseAgent(agent_request.name, agent_request.list_of_tools)
         self.model_service.add_model(agent_request.name, agent)
         return agent
+    
+    def delete_agent(self, agent_name: str):
+        self.agent_repository.delete_agent(agent_name)
+        self.model_service.delete_model(agent_name)
+        os.remove(PROMPTS_PATH.format(agent_name=agent_name))
 
     def bootstrap(self):
         print("Bootstrapping agents")

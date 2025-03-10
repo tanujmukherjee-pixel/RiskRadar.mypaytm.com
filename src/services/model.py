@@ -36,7 +36,10 @@ class ModelService:
         }
     
     def delete_model(self, model_id: str):
-        raise NotImplementedError("Delete model not implemented")
+        try:
+            self.models.pop(model_id)
+        except KeyError:
+            print(f"Model {model_id} not found.")
     
     def add_model(self, model_id: str, model: BaseAgent):
         self.models[model_id] = model

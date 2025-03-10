@@ -9,30 +9,50 @@ class AgentRepository:
         self.cursor = self.conn.cursor(cursor_factory=RealDictCursor)
 
     def create_agent(self, agent_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Create a new agent record"""
-        query = """
-            INSERT INTO agents (
-                name, 
-                description, 
-                tools, 
-                system_prompt,
-                approach_prompt,
-                output_prompt,
-                created_at, 
-                updated_at
-            )
-            VALUES (
-                %(name)s, 
-                %(description)s, 
-                %(tools)s,
-                %(system_prompt)s,
-                %(approach_prompt)s, 
-                %(output_prompt)s,
-                NOW(), 
-                NOW()
-            )
-            RETURNING id, name, description, tools, system_prompt, approach_prompt, output_prompt, created_at, updated_at;
-        """
+        """Create a new agent record or update if exists"""
+        # First check if agent with same name exists
+        check_query = "SELECT id FROM agents WHERE name = %(name)s;"
+        self.cursor.execute(check_query, agent_data)
+        existing_agent = self.cursor.fetchone()
+
+        if existing_agent:
+            # Update existing agent
+            query = """
+                UPDATE agents 
+                SET description = %(description)s,
+                    tools = %(tools)s,
+                    system_prompt = %(system_prompt)s,
+                    approach_prompt = %(approach_prompt)s,
+                    output_prompt = %(output_prompt)s,
+                    updated_at = NOW()
+                WHERE name = %(name)s
+                RETURNING id, name, description, tools, system_prompt, approach_prompt, output_prompt, created_at, updated_at;
+            """
+        else:
+            # Insert new agent
+            query = """
+                INSERT INTO agents (
+                    name, 
+                    description, 
+                    tools, 
+                    system_prompt,
+                    approach_prompt,
+                    output_prompt,
+                    created_at, 
+                    updated_at
+                )
+                VALUES (
+                    %(name)s, 
+                    %(description)s, 
+                    %(tools)s,
+                    %(system_prompt)s,
+                    %(approach_prompt)s, 
+                    %(output_prompt)s,
+                    NOW(), 
+                    NOW()
+                )
+                RETURNING id, name, description, tools, system_prompt, approach_prompt, output_prompt, created_at, updated_at;
+            """
         print(f"Executing SQL query: {self.cursor.mogrify(query, agent_data).decode()}")
 
         self.cursor.execute(query, agent_data)
@@ -64,10 +84,10 @@ class AgentRepository:
         self.conn.commit()
         return self.cursor.fetchone()
 
-    def delete_agent(self, agent_id: int) -> bool:
+    def delete_agent(self, agent_name: str) -> bool:
         """Delete an agent"""
-        query = "DELETE FROM agents WHERE id = %s;"
-        self.cursor.execute(query, (agent_id,))
+        query = "DELETE FROM agents WHERE name = %s;"
+        self.cursor.execute(query, (agent_name,))
         self.conn.commit()
         return self.cursor.rowcount > 0
 
@@ -75,6 +95,12 @@ class AgentRepository:
         """List all agents"""
         query = "SELECT * FROM agents ORDER BY created_at DESC;"
         self.cursor.execute(query)
+        return self.cursor.fetchall()
+    
+    def list_agents_by_tool(self, tool_name: str) -> list[Dict[str, Any]]:
+        """List all agents by tool"""
+        query = "SELECT * FROM agents WHERE tools LIKE %s ORDER BY created_at DESC;"
+        self.cursor.execute(query, (f"%{tool_name}%",))
         return self.cursor.fetchall()
 
     def __del__(self):

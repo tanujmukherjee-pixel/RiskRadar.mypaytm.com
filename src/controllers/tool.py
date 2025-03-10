@@ -29,3 +29,21 @@ def _validate_tool_file(tool_file: UploadFile) -> Tuple[Dict[str, str], List[str
         raise HTTPException(status_code=400, detail="Tool file is empty")
 
     return parse_tool_file(file_content)
+
+@router.put("/v1/tools/{tool_name}", tags=["tools"])
+async def update_tool(tool_name: str, tool_file: UploadFile = File(...)):
+    try:
+        tools, imports = _validate_tool_file(tool_file)
+        tools_service.save_tool(tools, imports)
+        return {"message": "Tool updated successfully", "tools": list(tools.keys())}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/v1/tools/{tool_name}", tags=["tools"])
+async def delete_tool(tool_name: str):
+    try:
+        tools_service.delete_tool(tool_name)
+        return {"message": "Tool deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

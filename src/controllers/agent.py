@@ -59,3 +59,24 @@ def _validate_zip_file(zip_file: UploadFile):
             file_contents[filename] = zf.read(filename).decode('utf-8')
     
     return file_contents
+
+
+@router.put("/v1/agents/{agent_name}", tags=["agents"])
+async def update_agent(
+    agent_name: str,
+    agent_request: str,
+    file: UploadFile = File(...)
+):
+    if not file:
+        raise HTTPException(status_code=400, detail="ZIP file is required.")
+    
+    agent_request = AgentRequest(**json.loads(agent_request))
+    prompts = _validate_zip_file(file)
+    agent = agent_service.create_agent(agent_request, prompts)
+    return {"message": f"Agent {agent.agent_name} updated successfully"}
+
+
+@router.delete("/v1/agents/{agent_name}", tags=["agents"])
+async def delete_agent(agent_name: str):
+    agent_service.delete_agent(agent_name)
+    return {"message": f"Agent {agent_name} deleted successfully"}
