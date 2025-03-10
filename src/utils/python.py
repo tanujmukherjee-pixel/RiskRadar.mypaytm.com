@@ -77,8 +77,9 @@ def _install_imports(imports: List[str]):
         # Handle both 'import x' and 'from y import x' cases
         if 'from' in import_str:
             # For 'from y import x' format
-            _, imports = import_str.split('import')
-            import_parts = [p.strip() for p in imports.split(',')]
+            package, imports = import_str.split('import')
+            package = package.replace('from', '').strip()
+            import_parts = [package for p in imports.split(',')]
         else:
             # For 'import x' format
             _, imports = import_str.split('import')

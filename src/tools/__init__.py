@@ -3,7 +3,7 @@ from .mongo import execute_query_mongo
 from ..utils.time import get_current_date
 from llama_index.core.tools import FunctionTool
 from .cdp import fetch_all_datasets, fetch_dataset_schema
-from .starburst import execute_query
+from .starburst import execute_query, fetch_permitted_schemas, fetch_permitted_tables
 from .bitbucket import get_workspace_info, get_repository_info, get_commits, analyze_contributions, get_all_branches, get_all_repositories, call_bitbucket_api
 
 druid_tool = FunctionTool.from_defaults(fn=execute_query_pulse)
@@ -24,6 +24,8 @@ analyze_contributions_tool = FunctionTool.from_defaults(fn=analyze_contributions
 get_all_branches_tool = FunctionTool.from_defaults(fn=get_all_branches)
 get_all_repositories_tool = FunctionTool.from_defaults(fn=get_all_repositories)
 call_bitbucket_api_tool = FunctionTool.from_defaults(fn=call_bitbucket_api)
+fetch_permitted_schemas_tool = FunctionTool.from_defaults(fn=fetch_permitted_schemas)
+fetch_permitted_tables_tool = FunctionTool.from_defaults(fn=fetch_permitted_tables)
 
 tools = {
     "druid_tool": druid_tool,
@@ -42,5 +44,7 @@ tools = {
     "analyze_contributions_tool": analyze_contributions_tool,
     "get_all_branches_tool": get_all_branches_tool,
     "get_all_repositories_tool": get_all_repositories_tool,
-    "call_bitbucket_api_tool": call_bitbucket_api_tool
+    "call_bitbucket_api_tool": call_bitbucket_api_tool,
+    "fetch_permitted_schemas_tool": fetch_permitted_schemas_tool,
+    "fetch_permitted_tables_tool": fetch_permitted_tables_tool
 }

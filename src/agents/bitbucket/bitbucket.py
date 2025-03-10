@@ -1,6 +1,4 @@
 from ..base import BaseAgent
-from llama_index.core.tools import FunctionTool
-from ...tools.bitbucket import get_workspace_info, get_repository_info, get_commits, analyze_contributions, get_all_branches, get_all_repositories
 
 class BitbucketAgent(BaseAgent):
     def __init__(self):

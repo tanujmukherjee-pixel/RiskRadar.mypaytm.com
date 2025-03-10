@@ -3,7 +3,6 @@ from llama_index.llms.openai import OpenAI
 import os
 from llama_index.core import PromptTemplate
 
-
 react_system_header_str = """\
 ## Tools
 You have access to a wide variety of tools. You are responsible for using
@@ -63,8 +62,22 @@ def react_query_engine(system_prompt, approach_prompt, output_prompt, tools):
         api_base=os.environ.get("OPENAI_API_BASE")
     )
 
+    callbacks = []
+    if os.environ.get("ENABLE_CALLBACK") in ["true", "True", "1", True]:
+        from llama_index.core.callbacks import CallbackManager
+        from opik.integrations.llama_index import LlamaIndexCallbackHandler
+
+        opik_callback_handler = LlamaIndexCallbackHandler()
+        callbacks.append(opik_callback_handler)
+
     # Create the ReAct agent
-    agent = ReActAgent.from_tools(tools, llm=llm, verbose=True, max_iterations=50)
+    agent = ReActAgent.from_tools(
+        tools,
+        llm=llm,
+        verbose=True,
+        max_iterations=50,
+        callback_manager=CallbackManager(callbacks) if callbacks else None
+    )
 
     react_system_prompt = PromptTemplate(
         template=system_prompt + "\n\n## Approach\n\n" + approach_prompt + "\n\n## Final Answer\n\n" + output_prompt + "\n\n" + react_system_header_str
