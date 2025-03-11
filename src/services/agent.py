@@ -3,13 +3,16 @@ from ..domain.agent_request import AgentRequest
 from ..services.model import model_service
 from ..constants.path import PROMPTS_PATH, SYSTEM_PROMPT_FILE, APPROACH_PROMPT_FILE, OUTPUT_PROMPT_FILE
 import os
-from ..repositories.agent import agent_repository
-
+from ..repositories.agent import get_repository as get_agent_repository
+from ..repositories.noop_agent import get_repository as get_noop_agent_repository
 
 class AgentService:
     def __init__(self):
         self.model_service = model_service
-        self.agent_repository = agent_repository
+        if os.getenv("DISABLE_DATABASE"):
+            self.agent_repository = get_noop_agent_repository()
+        else:
+            self.agent_repository = get_agent_repository()
 
     def create_agent(self, agent_request: AgentRequest, prompts: dict):
         agent_data = {

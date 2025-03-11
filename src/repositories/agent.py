@@ -110,5 +110,5 @@ class AgentRepository:
         if hasattr(self, 'conn'):
             self.conn.close()
 
-agent_repository = AgentRepository()
-
+def get_repository():
+    return AgentRepository()

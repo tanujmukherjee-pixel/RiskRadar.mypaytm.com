@@ -5,7 +5,7 @@ from typing import List
 session_map = {}
 
 
-def fetch_all_datasets(tag: str, session_id: str):
+def fetch_all_datasets(identifier: str, session_id: str):
     """
     Fetches all the relevant datasets from the cdp based on tags
     """
@@ -30,11 +30,11 @@ def fetch_all_datasets(tag: str, session_id: str):
     avg_desc_len = df['description'].str.len().mean()
     
     # Calculate scores for name matches
-    name_matches = df['name'].str.contains(tag, case=False, na=False)
+    name_matches = df['name'].str.contains(identifier, case=False, na=False)
     name_scores = name_matches * (1 + k1) / (1 + k1 * ((df['name'].str.len() / avg_name_len) * b))
     
     # Calculate scores for description matches
-    desc_matches = df['description'].str.contains(tag, case=False, na=False) 
+    desc_matches = df['description'].str.contains(identifier, case=False, na=False) 
     desc_scores = desc_matches * (1 + k1) / (1 + k1 * ((df['description'].str.len() / avg_desc_len) * b))
     
     # Combine scores with higher weight for name matches
@@ -52,11 +52,11 @@ def fetch_all_datasets(tag: str, session_id: str):
     filtered_df = filtered_df.drop_duplicates().drop('name', axis=1)
     return filtered_df.to_dict(orient="records")
 
-def fetch_dataset_schema(id: str):
+def fetch_dataset_schema(dataset_id: str):
     """
-    Fetches the schema of the dataset from the cdp based on dataset id
+    Fetches the schema of the dataset from the cdp based on dataset id fetched from fetch_all_datasets
     """
-    url = f"http://dataset-service-prod.mm7pbnhhzr.ap-south-1.elasticbeanstalk.com/v2/datasets/{id}"
+    url = f"http://dataset-service-prod.mm7pbnhhzr.ap-south-1.elasticbeanstalk.com/v2/datasets/{dataset_id}"
     response = get_request(url, None)
     table_name = response["name"]
     fields = response["fields"]

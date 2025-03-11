@@ -2,8 +2,7 @@ from typing import Dict, Any
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from ..constants.database import DATABASE_URL
-from .agent import agent_repository
-
+from .agent import get_repository as get_agent_repository
 class ToolRepository:
     def __init__(self):
         self.conn = psycopg2.connect(DATABASE_URL)
@@ -75,7 +74,7 @@ class ToolRepository:
 
     def delete_tool(self, tool_name: str) -> bool:
         """Delete an tool"""
-        agents = agent_repository.list_agents_by_tool(tool_name)
+        agents = get_agent_repository().list_agents_by_tool(tool_name)
         if len(agents) > 0:
             raise Exception(f"Tool {tool_name} is used by {", ".join([agent['name'] for agent in agents])} agent(s)")
         query = "DELETE FROM tools WHERE name = %s;"
@@ -96,5 +95,5 @@ class ToolRepository:
         if hasattr(self, 'conn'):
             self.conn.close()
 
-tool_repository = ToolRepository()
-
+def get_repository():
+    return ToolRepository()

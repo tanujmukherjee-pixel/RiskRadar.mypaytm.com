@@ -3,17 +3,23 @@ from llama_index.core.tools import FunctionTool
 from ..tools import tools
 from ..constants.path import TOOLS_PATH
 from typing import List
-from ..repositories.tool import tool_repository
+from ..repositories.tool import get_repository as get_tool_repository
+from ..repositories.noop_tool import get_repository as get_noop_tool_repository
 from ..utils.file import write_file
 import os
+
 class Tools:
     def __init__(self):
         self.tools : Dict[str, FunctionTool] = {}
+        if os.environ.get("DISABLE_DATABASE"):
+            self.tool_repository = get_noop_tool_repository()
+        else:
+            self.tool_repository = get_tool_repository()
         self._populate_tools()
 
     def bootstrap(self):
         print("Bootstrapping tools")
-        tools = tool_repository.list_tools()
+        tools = self.tool_repository.list_tools()
         for tool in tools:
             import os
             os.makedirs(os.path.dirname(TOOLS_PATH.format(tool_name=tool['name'])), exist_ok=True)
@@ -42,7 +48,7 @@ class Tools:
                 "description": tool_name,
                 "file_content": contents[tool_name],
             }
-            tool_repository.create_tool(tool_data)
+            self.tool_repository.create_tool(tool_data)
             self._load_tool(tool_name)
 
     def _load_tool(self, tool_name: str) -> FunctionTool:
@@ -71,7 +77,7 @@ class Tools:
 
 
     def delete_tool(self, tool_name: str) -> None:
-        tool_repository.delete_tool(tool_name)
+        self.tool_repository.delete_tool(tool_name)
         self.tools.pop(tool_name)
         os.remove(TOOLS_PATH.format(tool_name=tool_name))
 
