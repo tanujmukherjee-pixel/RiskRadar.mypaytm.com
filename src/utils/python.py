@@ -1,6 +1,7 @@
 import re
 from fastapi import HTTPException
 from typing import List, Dict, Tuple
+import os
 
 def parse_tool_file(file_content: str) -> Tuple[Dict[str, str], List[str]]:
 
@@ -94,7 +95,21 @@ def _install_imports(imports: List[str]):
                     # If import fails, try installing with pip
                     print(f"Installing {import_part}...")
                     try:
-                        subprocess.check_call([sys.executable, "-m", "pip", "install", import_part])
+                        try:
+                            # Try installing with --user flag to avoid permission issues
+                            subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", import_part])
+                        except (OSError, subprocess.CalledProcessError):
+                            # If user install fails, check and create .local directory
+                            local_dir = os.path.expanduser('~/.local')
+                            if not os.path.exists(local_dir):
+                                os.makedirs(local_dir, exist_ok=True)
+                                os.chmod(local_dir, 0o700)  # Set proper permissions
+                            try:
+                                subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", import_part])
+                            except (OSError, subprocess.CalledProcessError):
+                                print("Error: Failed to install package. Try manually installing with:")
+                                print(f"pip install {import_part} --user")
+                                raise ImportError(f"Failed to install package {import_part}")
                         # Try importing again after install
                         exec(f"import {import_part}")
                     except subprocess.CalledProcessError:
