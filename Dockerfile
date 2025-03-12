@@ -5,8 +5,18 @@ WORKDIR /agency
 
 COPY . .
 
+# Create a non-root user and give it permissions
+RUN useradd -ms /bin/bash appuser && \
+    chown -R appuser /agency
+
+# Switch to the new user
+USER appuser
+
 # Install dependencies using pip
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Switch back to root to set permissions for /.cache
+USER root
 
 # Ensure root has full permissions
 RUN mkdir -p /.cache && \
