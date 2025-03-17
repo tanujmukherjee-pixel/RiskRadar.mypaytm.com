@@ -155,3 +155,28 @@ def fetch_all_applicable_segments(vertical: str, product: str):
     filtered_segments = [segment for segment in segments if segment["Vertical"] == vertical and segment["Product"] == product]
     common_segments = [segment for segment in filtered_segments if segment["Vertical"] == "Common" and segment["Product"] == "Common"]
     return filtered_segments + common_segments
+
+
+def fetch_all_insights():
+    """
+    Fetches details of all insights from the cdp
+    """
+    url = f"http://pulse.bi.mypaytm.com/api/v1/insight/?q=(filters:!((col:type,opr:eq,value:Insight)),order_column:name,order_direction:desc,page:0,page_size:25)"
+    response = get_request(url, None)
+    result = response["result"]
+    df = pd.DataFrame(result)
+    columns_to_keep = ['id', 'name', 'filter', 'granularity', 'segments', 'slices', 'stage_type_list_map', 'time_range','view_type']
+    df = df[df.columns.intersection(columns_to_keep)]
+    return df.to_dict(orient="records")
+
+def fetch_insight_details(insight_id: str):
+    """
+    Fetches details of an insight from the cdp based on insight id
+    """
+    url = f"http://pulse-staging-v2.superset.mypaytm.com/api/v1/insight/{insight_id}"
+    response = get_request(url, None)
+    result = response["result"]
+    df = pd.DataFrame(result)
+    columns_to_keep = ['id', 'name', 'filter', 'granularity', 'segments', 'slices', 'stage_type_list_map', 'time_range','view_type']
+    df = df[df.columns.intersection(columns_to_keep)]
+    return df.to_dict(orient="records")

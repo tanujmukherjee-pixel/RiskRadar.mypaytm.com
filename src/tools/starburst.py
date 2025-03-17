@@ -13,7 +13,6 @@ def execute_query(query: str):
     """
     Executes a query on the starburst database
     """
-    print(query)
     connection = _connect()
     cursor = connection.cursor()
     cursor.execute(query)
