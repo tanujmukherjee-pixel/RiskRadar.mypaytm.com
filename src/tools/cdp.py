@@ -67,30 +67,3 @@ def fetch_dataset_schema(dataset_id: str):
     df = df[df.columns.intersection(columns_to_keep)]
     df["schema"] = table_name
     return df.to_dict(orient="records")
-
-def fetch_all_insights():
-    """
-    Fetches all insights from the cdp
-    """
-    url = os.environ.get("PULSE_SERVICE_HOST", "https://pulse.bi.mypaytm.com") + "/api/v1/insight/?q=(filters:!((col:type,opr:eq,value:Insight)),order_column:name,order_direction:desc,page:0,page_size:200)"
-    response = get_request(url, None)
-    result = response["result"]
-    df = pd.DataFrame(result)
-    columns_to_keep = ['id', 'name', 'filter', 'granularity', 'segments', 'slices', 'time_range']
-    df = df[df.columns.intersection(columns_to_keep)]
-    return df.to_dict(orient="records")
-
-def fetch_insight_details(insight_id: str, segment_id: str, time_range: str = "Last 30 days", column_filters: List[str] = [], granularity_value: str = "all"):
-    """
-    Fetches details of an insight from the cdp based on insight id
-    default time range is last 30 days
-    default column filters are empty
-    default granularity is all
-    """
-    url = os.environ.get("PULSE_SERVICE_HOST", "https://pulse.bi.mypaytm.com") + f"/api/v1/chart/{insight_id}/data/?segment={segment_id}&time_range={time_range}&column_filters={column_filters}&insight=true&granularity={granularity_value}&isNewInsight=false&force=true"
-    response = get_request(url, None)
-    response = response["result"]
-    df = pd.DataFrame(response)
-    columns_to_keep = ['data_json']
-    df = df[df.columns.intersection(columns_to_keep)]
-    return df.to_dict(orient="records")

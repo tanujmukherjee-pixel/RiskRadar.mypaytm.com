@@ -7,7 +7,7 @@ import json
 import urllib.parse
 import uuid
 import os
-
+from typing import List
 pulse_cookie = os.getenv("PULSE_COOKIE")
 print(pulse_cookie)
 
@@ -159,24 +159,43 @@ def fetch_all_applicable_segments(vertical: str, product: str):
 
 def fetch_all_insights():
     """
-    Fetches details of all insights from the cdp
+    Fetches all insights from the cdp
     """
-    url = f"http://pulse.bi.mypaytm.com/api/v1/insight/?q=(filters:!((col:type,opr:eq,value:Insight)),order_column:name,order_direction:desc,page:0,page_size:25)"
-    response = get_request(url, None)
+    
+    if not pulse_cookie:
+        raise ValueError("PULSE_COOKIE environment variable is not set")
+
+    headers = {
+            "Cookie": pulse_cookie,
+            "Content-Type": "application/json",
+        }
+
+    url = os.environ.get("PULSE_SERVICE_HOST", "https://pulse.bi.mypaytm.com") + "/api/v1/insight/?q=(filters:!((col:type,opr:eq,value:Insight)),order_column:name,order_direction:desc,page:0,page_size:200)"
+    response = get_request(url, headers)
     result = response["result"]
     df = pd.DataFrame(result)
-    columns_to_keep = ['id', 'name', 'filter', 'granularity', 'segments', 'slices', 'stage_type_list_map', 'time_range','view_type']
+    columns_to_keep = ['id', 'name', 'filter', 'granularity', 'segments', 'slices', 'time_range']
     df = df[df.columns.intersection(columns_to_keep)]
     return df.to_dict(orient="records")
 
-def fetch_insight_details(insight_id: str):
+def fetch_insight_details(insight_id: str, segment_id: str, time_range: str = "Last 30 days", column_filters: List[str] = [], granularity_value: str = "all"):
     """
     Fetches details of an insight from the cdp based on insight id
+    default time range is last 30 days
+    default column filters are empty
+    default granularity is all
     """
-    url = f"http://pulse-staging-v2.superset.mypaytm.com/api/v1/insight/{insight_id}"
-    response = get_request(url, None)
-    result = response["result"]
-    df = pd.DataFrame(result)
-    columns_to_keep = ['id', 'name', 'filter', 'granularity', 'segments', 'slices', 'stage_type_list_map', 'time_range','view_type']
+    if not pulse_cookie:
+        raise ValueError("PULSE_COOKIE environment variable is not set")
+
+    headers = {
+            "Cookie": pulse_cookie,
+            "Content-Type": "application/json",
+        }
+    url = os.environ.get("PULSE_SERVICE_HOST", "https://pulse.bi.mypaytm.com") + f"/api/v1/chart/{insight_id}/data/?segment={segment_id}&time_range={time_range}&column_filters={column_filters}&insight=true&granularity={granularity_value}&isNewInsight=false&force=true"
+    response = get_request(url, headers)
+    response = response["result"]
+    df = pd.DataFrame(response)
+    columns_to_keep = ['data_json']
     df = df[df.columns.intersection(columns_to_keep)]
     return df.to_dict(orient="records")

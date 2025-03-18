@@ -1,8 +1,8 @@
-from .druid import execute_query_pulse, fetch_all_segments, get_all_funnels, fetch_query, fetch_all_applicable_segments
+from .druid import execute_query_pulse, fetch_all_segments, get_all_funnels, fetch_query, fetch_all_applicable_segments, fetch_insight_details, fetch_all_insights
 from .mongo import execute_query_mongo
 from ..utils.time import get_current_date
 from llama_index.core.tools import FunctionTool
-from .cdp import fetch_all_datasets, fetch_dataset_schema, fetch_insight_details, fetch_all_insights
+from .cdp import fetch_all_datasets, fetch_dataset_schema
 from .starburst import execute_query, fetch_permitted_schemas, fetch_permitted_tables
 from .bitbucket import get_workspace_info, get_repository_info, get_commits, analyze_contributions, get_all_branches, get_all_repositories, call_bitbucket_api
 
