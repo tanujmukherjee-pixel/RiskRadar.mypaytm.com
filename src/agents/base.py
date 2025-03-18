@@ -48,7 +48,7 @@ class BaseAgent:
                 choices=[
                     Choice(
                         index=0,
-                        message=Message(role="assistant", reasoning_content=task.extra_state['current_reasoning'][0].thought)
+                        message=Message(role="assistant", reasoning_content=task.extra_state['current_reasoning'][0].thought.replace("```", ""))
                     )
                     ]
                 )
@@ -66,7 +66,7 @@ class BaseAgent:
                     choices=[
                             Choice(
                                 index=0,
-                                message=Message(role="assistant", reasoning_content=task.extra_state['current_reasoning'][-2].thought)
+                                message=Message(role="assistant", reasoning_content=task.extra_state['current_reasoning'][-2].thought.replace("```", ""))
                             )
                         ]
                     )

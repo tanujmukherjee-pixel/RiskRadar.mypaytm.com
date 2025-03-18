@@ -24,7 +24,7 @@ def _connect() -> None:
     connection = connect(
         host=os.getenv('STARBURST_HOST', 'https://cdp-dashboarding.platform.mypaytm.com'),
         port=443,
-        user=os.getenv('STARBURST_USER', 'mujeebul.ansari@paytm.com'),
+        user=os.getenv('STARBURST_USER', 'suyash.pandey@paytm.com'),
         catalog=os.getenv('STARBURST_CATALOG', 'hive'),
         request_timeout=3600
     )
