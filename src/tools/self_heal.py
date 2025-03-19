@@ -33,6 +33,19 @@ def install_awscli():
             logging.info("AWS CLI is already installed")
             logging.info(f"AWS CLI version: {aws_version.stdout.strip()}")
         else:
+
+            # Install curl if not already installed
+            curl_exists = shutil.which('curl') is not None
+            if not curl_exists:
+                logging.info("Installing curl...")
+                subprocess.run(
+                    "apt-get update && apt-get install curl -y",
+                    shell=True, check=True
+                )
+                logging.info("Successfully installed curl")
+            else:
+                logging.info("curl is already installed")
+
             # Install AWS CLI
             logging.info("Installing AWS CLI...")
             # Change to /tmp directory and perform installation

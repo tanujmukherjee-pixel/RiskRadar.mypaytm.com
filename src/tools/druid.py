@@ -9,10 +9,7 @@ import uuid
 import os
 from typing import List
 pulse_cookie = os.getenv("PULSE_COOKIE")
-print(pulse_cookie)
-
 imply_cookie = os.getenv("IMPLY_COOKIE")
-print(imply_cookie)
 
 def get_all_funnels():
     """

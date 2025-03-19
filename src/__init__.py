@@ -3,6 +3,8 @@ from .controllers.chat import router as chat_router
 from .controllers.agent import router as agent_router
 from .controllers.tool import router as tool_router
 from .bootstap import bootstrap
+from dotenv import load_dotenv
+
 app = FastAPI()
 
 app.include_router(chat_router)
@@ -10,6 +12,7 @@ app.include_router(agent_router)
 app.include_router(tool_router)
 bootstrap()
 
+load_dotenv(override=True, dotenv_path=".env")
 
 # @app.middleware("http")
 # async def log_requests(request: Request, call_next):

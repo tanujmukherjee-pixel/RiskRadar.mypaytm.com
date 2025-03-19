@@ -34,10 +34,6 @@ async def create_completion(request: ModelRequest):
 
 @router.post("/v1/chat/completions", tags=["chat"])
 async def chat_completion(request: ChatCompletionRequest, fastapi_request: Request):
-    # Log the Accept header
-    accept_header = fastapi_request.headers.get('accept')
-    print(f"Accept header: {accept_header}")
-
     async def event_generator():
         try:
             async for chunk in model_service.chat_completion(
