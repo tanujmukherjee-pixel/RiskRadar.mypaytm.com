@@ -3,12 +3,14 @@ from ..domains.chat import ChatMessage, ChatResponse, Choice, Message
 import uuid
 import time
 from ..services.react import react_query_engine
-from ..services.tools import Tools
+from llama_index.core.tools import QueryEngineTool, ToolMetadata
 from ..utils.file import read_file
-from ..constants.path import SYSTEM_PROMPT_FILE, APPROACH_PROMPT_FILE, OUTPUT_PROMPT_FILE, PROMPTS_PATH
+from ..constants.path import SYSTEM_PROMPT_FILE, APPROACH_PROMPT_FILE, OUTPUT_PROMPT_FILE, PROMPTS_PATH, DOCS_PATH
 import os
 import shutil
 from ..services.tools import tools_service
+from ..rags.base import BaseRAG
+
 class BaseAgent:
 
     agent_name = "default"
@@ -22,6 +24,14 @@ class BaseAgent:
         self.output_prompt = read_file(f"{PROMPTS_PATH}{OUTPUT_PROMPT_FILE}".format(agent_name=agent_name))
         for tool_name in tools:
             self.tools.append(tools_service.get_tool(tool_name))
+        
+        # Check if docs path exists
+        docs_path = DOCS_PATH.format(agent_name=agent_name)
+        if os.path.exists(docs_path):
+            rag = BaseRAG(agent_name)
+            query_engine_tool = QueryEngineTool(query_engine=rag.get_query_engine(), metadata=ToolMetadata(name=agent_name, description=f"Contains docs related to {agent_name}"))
+            self.tools.append(query_engine_tool)
+
         self.agent = self.get_agent()
 
     def get_agent(self):

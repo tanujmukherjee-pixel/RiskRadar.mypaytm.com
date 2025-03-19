@@ -6,6 +6,7 @@ from typing import List
 from ..repositories.tool import get_repository as get_tool_repository
 from ..repositories.noop_tool import get_repository as get_noop_tool_repository
 from ..utils.file import write_file
+from ..utils.python import _install_imports, _fetch_imports
 import os
 
 class Tools:
@@ -21,6 +22,8 @@ class Tools:
         print("Bootstrapping tools")
         tools = self.tool_repository.list_tools()
         for tool in tools:
+            imports = _fetch_imports(tool['file_content'])
+            _install_imports(imports)
             import os
             os.makedirs(os.path.dirname(TOOLS_PATH.format(tool_name=tool['name'])), exist_ok=True)
             write_file(TOOLS_PATH.format(tool_name=tool['name']), tool['file_content'])

@@ -5,6 +5,7 @@ from llama_index.core.tools import FunctionTool
 from .cdp import fetch_all_datasets, fetch_dataset_schema
 from .starburst import execute_query, fetch_permitted_schemas, fetch_permitted_tables
 from .bitbucket import get_workspace_info, get_repository_info, get_commits, analyze_contributions, get_all_branches, get_all_repositories, call_bitbucket_api
+from .self_heal import drain_node, cordon_node, uncordon_node, get_dns_hostname, clean_up_node, get_node, install_awscli, get_node_instance_id
 
 druid_tool = FunctionTool.from_defaults(fn=execute_query_pulse)
 segments_tool = FunctionTool.from_defaults(fn=fetch_all_segments)
@@ -28,6 +29,14 @@ fetch_permitted_schemas_tool = FunctionTool.from_defaults(fn=fetch_permitted_sch
 fetch_permitted_tables_tool = FunctionTool.from_defaults(fn=fetch_permitted_tables)
 fetch_all_insights_tool = FunctionTool.from_defaults(fn=fetch_all_insights)
 fetch_insight_details_tool = FunctionTool.from_defaults(fn=fetch_insight_details)
+drain_node_tool = FunctionTool.from_defaults(fn=drain_node)
+cordon_node_tool = FunctionTool.from_defaults(fn=cordon_node)
+uncordon_node_tool = FunctionTool.from_defaults(fn=uncordon_node)
+get_dns_hostname_tool = FunctionTool.from_defaults(fn=get_dns_hostname)
+clean_up_node_tool = FunctionTool.from_defaults(fn=clean_up_node)
+get_node_tool = FunctionTool.from_defaults(fn=get_node)
+install_awscli_tool = FunctionTool.from_defaults(fn=install_awscli)
+get_node_instance_id_tool = FunctionTool.from_defaults(fn=get_node_instance_id)
 
 tools = {
     "druid_tool": druid_tool,
@@ -50,5 +59,13 @@ tools = {
     "fetch_permitted_schemas_tool": fetch_permitted_schemas_tool,
     "fetch_permitted_tables_tool": fetch_permitted_tables_tool,
     "fetch_all_insights_tool": fetch_all_insights_tool,
-    "fetch_insight_details_tool": fetch_insight_details_tool
+    "fetch_insight_details_tool": fetch_insight_details_tool,
+    "drain_node": drain_node_tool,
+    "cordon_node": cordon_node_tool,
+    "uncordon_node": uncordon_node_tool,
+    "get_dns_hostname": get_dns_hostname_tool,
+    "clean_up_node": clean_up_node_tool,
+    "get_node": get_node_tool,
+    "install_awscli": install_awscli_tool,
+    "get_node_instance_id": get_node_instance_id_tool
 }

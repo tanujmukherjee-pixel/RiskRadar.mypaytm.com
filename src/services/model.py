@@ -2,6 +2,7 @@ from typing import Dict, List, Optional, AsyncGenerator, Any
 from ..agents.base import BaseAgent
 from ..agents.funnel.funnel import FunnelAgent
 from ..agents.ba.ba import BaAgent
+from ..agents.self_heal.self_heal import SelfHealAgent
 from ..agents.bitbucket.bitbucket import BitbucketAgent
 from ..domains.chat import ModelResponse, ModelsResponse, ChatMessage, ChatResponse
 from ..rags.base import BaseRAG
@@ -12,7 +13,8 @@ class ModelService:
             "funnel" : FunnelAgent(),
             "ba" : BaAgent(),
             "bitbucket" : BitbucketAgent(),
-            "neo4j" : BaseRAG("neo4j")
+            "neo4j" : BaseRAG("neo4j"),
+            "self-heal" : SelfHealAgent()
         }
 
     async def chat_completion(self, model_id: str, messages: List[ChatMessage], max_tokens: Optional[int] = 50, temperature: Optional[float] = 0.7) -> AsyncGenerator[ChatResponse, None]:

@@ -20,37 +20,8 @@ def fetch_all_datasets(identifier: str, session_id: str):
     df = df[df['status'] == 'ACTIVE'][['id', 'name', 'description']]
 
     filtered_df = pd.DataFrame()
-
-    # Filter rows where tag appears in either name or description (case-insensitive)
-    # Calculate BM25-like scores for name and description matches
-    k1 = 1.5
-    b = 0.75
+    filtered_df = df[df['name'].str.contains(identifier, case=False, na=False) | df['description'].str.contains(identifier, case=False, na=False)]
     
-    # Calculate average field lengths
-    avg_name_len = df['name'].str.len().mean()
-    avg_desc_len = df['description'].str.len().mean()
-    
-    # Calculate scores for name matches
-    name_matches = df['name'].str.contains(identifier, case=False, na=False)
-    name_scores = name_matches * (1 + k1) / (1 + k1 * ((df['name'].str.len() / avg_name_len) * b))
-    
-    # Calculate scores for description matches
-    desc_matches = df['description'].str.contains(identifier, case=False, na=False) 
-    desc_scores = desc_matches * (1 + k1) / (1 + k1 * ((df['description'].str.len() / avg_desc_len) * b))
-    
-    # Combine scores with higher weight for name matches
-    total_scores = (name_scores * 2) + desc_scores
-    
-    # Filter rows with non-zero scores and add score column
-    filtered_df_temp = df[total_scores > 0].copy()
-    filtered_df_temp['relevance_score'] = total_scores[total_scores > 0]
-    
-    # Sort by score and concatenate
-    filtered_df_temp = filtered_df_temp.sort_values('relevance_score', ascending=False)
-    filtered_df = pd.concat([filtered_df, filtered_df_temp])
-
-    # Remove duplicates and drop the name column
-    filtered_df = filtered_df.drop_duplicates().drop('name', axis=1)
     return filtered_df.to_dict(orient="records")
 
 def fetch_dataset_schema(dataset_id: str):

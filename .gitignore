@@ -52,3 +52,4 @@ pi-ai.code-workspace
 *.vscode*
 data/tools/*
 .env
+*storage-graph*
