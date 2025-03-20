@@ -1,5 +1,5 @@
 # Stage 1: Build dependencies
-FROM python:3.12.7-slim-bullseye
+FROM python:3.12.9-bullseye
 
 WORKDIR /agency
 
