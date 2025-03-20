@@ -39,7 +39,7 @@ def install_awscli():
             if not curl_exists:
                 logging.info("Installing curl...")
                 subprocess.run(
-                    "yum install curl -y",
+                    "apt-get update && apt-get install -y curl",
                     shell=True, check=True
                 )
                 logging.info("Successfully installed curl")
@@ -59,7 +59,7 @@ def install_awscli():
             
             # Install unzip
             subprocess.run(
-                "yum install unzip -y",
+                "apt-get install -y unzip",
                 shell=True, check=True
             )
             
