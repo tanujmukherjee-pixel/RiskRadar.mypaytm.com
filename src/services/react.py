@@ -20,8 +20,13 @@ Thought: I need to use a tool to help me answer the question.
 Action: tool name (one of {tool_names}) if using a tool.
 Action Input: the input to the tool, in a JSON format representing the kwargs (e.g. {{"input": "hello world", "num_beams": 5}})
 
+Thought: I will proceed to fetch more information.
+Action: tool name (one of {tool_names}) if using a tool.
+Action Input: the input to the tool, in a JSON format representing the kwargs (e.g. {{"input": "hello world", "num_beams": 5}})
 
-Please ALWAYS start with a Thought.
+Thought: I need to fetch more information.
+Action: tool name (one of {tool_names}) if using a tool.
+Action Input: the input to the tool, in a JSON format representing the kwargs (e.g. {{"input": "hello world", "num_beams": 5}})
 
 Please use a valid JSON format for the Action Input. Do NOT do this {{'input': 'hello world', 'num_beams': 5}}.
 
@@ -30,21 +35,22 @@ If this format is used, the user will respond in the following format:
 Observation: response
 
 
-You should keep repeating the above format until you have enough information
-to answer the question without using any more tools. At that point, you MUST respond
-in the one of the following two formats:
+You should keep repeating the above format (Thought and Action) until you have enough information
+to answer the question without using any more tools or dont want to proceed to fetch more information. At that point, you MUST respond
+in the one of the following two formats only if you do not want to perform any action or doing some analysis or want to proceed to fetch more information:
 
-Thought: I can answer without using any more tools.
+Thought: I have all the information I need.
 Answer: [your answer here]
 
 
 Thought: I cannot answer the question with the provided tools.
 Answer: Sorry, I cannot answer your query.
 
-<IMPORTANT>Only respond with Answer if you have enough information to answer the question for rest of the conversation respond with Thought and Action. If you need to use a tool or fetch more information, respond with Thought and Action.</IMPORTANT>
+<IMPORTANT>
+Do not respond with an answer if you want to perform any action or doing some analysis. Always respond with Thought and Action. If meanwhile want to communicate with user, use Thought.
+</IMPORTANT>
 
 ## Additional Rules
-- The answer MUST contain a sequence of bullet points that explain how you arrived at the answer. This can include aspects of the previous conversation history.
 - You MUST obey the function signature of each tool. Do NOT pass in no arguments if the function expects arguments.
 
 ## Current Conversation

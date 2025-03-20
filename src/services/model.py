@@ -4,8 +4,9 @@ from ..agents.funnel.funnel import FunnelAgent
 from ..agents.ba.ba import BaAgent
 from ..agents.self_heal.self_heal import SelfHealAgent
 from ..agents.bitbucket.bitbucket import BitbucketAgent
-from ..domains.chat import ModelResponse, ModelsResponse, ChatMessage, ChatResponse
+from ..domains.chat import ModelResponse, ModelsResponse, ChatMessage, ChatResponse, Choice, Message
 from ..rags.base import BaseRAG
+import time
 
 class ModelService:
     def __init__(self):
@@ -21,8 +22,23 @@ class ModelService:
         model = self.models.get(model_id)
         if not model:
             raise ValueError(f"Model {model_id} not found.")
-        async for response_chunk in model.chat_completion(messages, max_tokens, temperature):
-            yield response_chunk
+        try:
+            async for response_chunk in model.chat_completion(messages, max_tokens, temperature):
+                yield response_chunk
+        except Exception as e:
+            yield ChatResponse(
+                id="error",
+                object="chat.completion",
+                created=int(time.time()),
+                model=model_id,
+                choices=[
+                    Choice(
+                        index=0,
+                        message=Message(role="assistant", content=f"I'm sorry, I encountered an error"),
+                        finish_reason="stop"
+                    )
+                ]
+            )
 
     def list_models(self) -> ModelsResponse:
         return ModelsResponse(object="list", data=[ModelResponse(id=model_id, object="model", created=0, owned_by="system") for model_id in self.models.keys()])
