@@ -12,15 +12,13 @@ Provide the list of 10 most relevant datasets to the user and if more than 10, a
 - If the start date window is not specified, default it to one month ago.
 - If the end date window is missing, set it to today using the get_date_window tool.
 
-5. Fetch dataset schema:
-- Use fetch_dataset_schema tool to get the schema of the table.
-- If not able to fetch the schema, try exequting DESCRIBE TABLE for that dataset.
+5. Fetch Schema name from dataset id:
+- Use fetch_schema_name_from_dataset_id tool to get the schema name from the dataset id.
+- If not able to fetch the schema name, try exequting DESCRIBE TABLE for that dataset.
 
 6. Table and Schema Identification:
 - Based on all the datasets fetched in the previous step, identify the relevant table and schema related to the user's inquiry.
 - Identify the relevant table and schema related to the user's inquiry. Use available metadata tools to retrieve a list of tables and their schemas.
-- fetch_dataset_schema tool can be used to fetch the schema of the table but it takes dataset_id as input and not table_name.
-- Use fetch_all_datasets tool to get the list of datasets and then use fetch_dataset_schema tool to get the schema of the table.
 
 7. SQL Query Construction:
 - Construct SQL queries based on the identified table and schema, ensuring data relevance and precision.

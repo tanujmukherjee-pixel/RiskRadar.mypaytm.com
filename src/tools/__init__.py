@@ -2,7 +2,7 @@ from .druid import execute_query_pulse, fetch_all_segments, get_all_funnels, fet
 from .mongo import execute_query_mongo
 from ..utils.time import get_current_date
 from llama_index.core.tools import FunctionTool
-from .cdp import fetch_all_datasets, fetch_dataset_schema
+from .cdp import fetch_all_datasets, fetch_schema_name_from_dataset_id
 from .starburst import execute_query, fetch_permitted_schemas, fetch_permitted_tables
 from .bitbucket import get_workspace_info, get_repository_info, get_commits, analyze_contributions, get_all_branches, get_all_repositories, call_bitbucket_api
 from .self_heal import drain_node, cordon_node, uncordon_node, get_dns_hostname, clean_up_node, get_node, install_awscli, get_node_instance_id
@@ -15,7 +15,7 @@ applicable_segments_tool = FunctionTool.from_defaults(fn=fetch_all_applicable_se
 mongo_tool = FunctionTool.from_defaults(fn=execute_query_mongo)
 current_date_tool = FunctionTool.from_defaults(fn=get_current_date)
 fetch_all_datasets_tool = FunctionTool.from_defaults(fn=fetch_all_datasets)
-fetch_dataset_schema_tool = FunctionTool.from_defaults(fn=fetch_dataset_schema)
+fetch_schema_name_from_dataset_id_tool = FunctionTool.from_defaults(fn=fetch_schema_name_from_dataset_id)
 current_date_tool = FunctionTool.from_defaults(fn=get_current_date)
 execute_query_tool = FunctionTool.from_defaults(fn=execute_query)
 get_workspace_info_tool = FunctionTool.from_defaults(fn=get_workspace_info)
@@ -47,7 +47,7 @@ tools = {
     "mongo_tool": mongo_tool,
     "current_date_tool": current_date_tool,
     "fetch_all_datasets_tool": fetch_all_datasets_tool,
-    "fetch_dataset_schema_tool": fetch_dataset_schema_tool,
+    "fetch_schema_name_from_dataset_id_tool": fetch_schema_name_from_dataset_id_tool,
     "execute_query_tool": execute_query_tool,
     "get_workspace_info_tool": get_workspace_info_tool,
     "get_repository_info_tool": get_repository_info_tool,

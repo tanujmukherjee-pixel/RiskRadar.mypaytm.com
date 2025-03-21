@@ -24,17 +24,16 @@ def fetch_all_datasets(identifier: str, session_id: str):
     
     return filtered_df.to_dict(orient="records")
 
-def fetch_dataset_schema(dataset_id: str):
+def fetch_schema_name_from_dataset_id(dataset_id: str):
     """
-    Fetches the schema of the dataset from the cdp based on dataset id fetched from fetch_all_datasets
+    Fetches the schema name from the dataset id fetched from fetch_all_datasets
     """
     url = os.environ.get("DATASET_SERVICE_HOST", "http://dataset-service-prod.mm7pbnhhzr.ap-south-1.elasticbeanstalk.com") + f"/v2/datasets/{dataset_id}"
     response = get_request(url, None)
-    table_name = response["name"]
-    fields = response["fields"]
-    df = pd.DataFrame(fields)
-    # Select only the specified columns if they exist in the DataFrame
-    columns_to_keep = ['name', 'data_type', 'column_type', 'description', 'primary_key', 'status']
-    df = df[df.columns.intersection(columns_to_keep)]
-    df["schema"] = table_name
-    return df.to_dict(orient="records")
+    destinations = response["destinations"]
+    name = "Schema Name not found"
+    for destination in destinations:
+        if destination["dest_type"] == "HIVE":
+            name = destination["local_name"]
+            break
+    return name
