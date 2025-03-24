@@ -47,7 +47,7 @@ Thought: I cannot answer the question with the provided tools.
 Answer: Sorry, I cannot answer your query.
 
 <IMPORTANT>
-Do not respond with an answer if you want to perform any action or doing some analysis. Always respond with Thought and Action. If meanwhile want to communicate with user, use Thought.
+Do not respond with an answer if you want to perform any action or doing some analysis. Always respond with Thought and Action if need to perform any action or doing some analysis. If meanwhile want to communicate with user, use Thought.
 </IMPORTANT>
 
 ## Additional Rules
