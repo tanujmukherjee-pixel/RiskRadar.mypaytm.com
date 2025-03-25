@@ -47,9 +47,70 @@ class BaseAgent:
         
         task = agent.create_task(message)
 
-        step_output = agent.run_step(task.task_id)
+        # Handle first reasoning step
+        try:
+            step_output = agent.run_step(task.task_id)
+            try:
+                yield ChatResponse(
+                    id=run_id,
+                    object="chat.completion", 
+                    created=int(time.time()),
+                    model=self.agent_name,
+                    choices=[
+                        Choice(
+                            index=0,
+                            message=Message(role="assistant", reasoning_content=task.extra_state['current_reasoning'][0].thought.replace("```", ""))
+                        )
+                        ]
+                    )
+            except (IndexError, KeyError) as e:
+                print(f"Error accessing reasoning content: {e}")
+        except Exception as e:
+            print(f"Error running first step: {e}")
+            # Generate a generic response if the agent step fails
+            yield ChatResponse(
+                id=run_id,
+                object="chat.completion",
+                created=int(time.time()),
+                model=self.agent_name,
+                choices=[
+                    Choice(
+                        index=0,
+                        message=Message(role="assistant", reasoning_content="I'm thinking about your request...")
+                    )
+                ]
+            )
 
-        try :
+        # Continue with additional reasoning steps
+        while not step_output.is_last:
+            try:
+                step_output = agent.run_step(task.task_id)
+                try:
+                    # Access the second-to-last reasoning to avoid potential empty deque issues
+                    reasoning_idx = -2 if len(task.extra_state['current_reasoning']) >= 2 else 0
+                    reasoning_content = task.extra_state['current_reasoning'][reasoning_idx].thought.replace("```", "")
+                    
+                    yield ChatResponse(
+                        id=run_id,
+                        object="chat.completion", 
+                        created=int(time.time()),
+                        model=self.agent_name,
+                        choices=[
+                                Choice(
+                                    index=0,
+                                    message=Message(role="assistant", reasoning_content=reasoning_content)
+                                )
+                            ]
+                        )
+                except (IndexError, KeyError) as e:
+                    print(f"Error accessing reasoning content in step: {e}")
+            except Exception as e:
+                print(f"Error running step: {e}")
+                break
+        
+        # Generate final response
+        try:
+            response = agent.finalize_response(task.task_id)
             yield ChatResponse(
                 id=run_id,
                 object="chat.completion", 
@@ -58,45 +119,27 @@ class BaseAgent:
                 choices=[
                     Choice(
                         index=0,
-                        message=Message(role="assistant", reasoning_content=task.extra_state['current_reasoning'][0].thought.replace("```", ""))
+                        message=Message(role="assistant", content=str(response)),
+                        finish_reason="stop"
                     )
-                    ]
-                )
+                ]
+            )
         except Exception as e:
-            print(e)
-
-        while not step_output.is_last:
-            try :
-                step_output = agent.run_step(task.task_id)
-                yield ChatResponse(
-                    id=run_id,
-                    object="chat.completion", 
-                    created=int(time.time()),
-                    model=self.agent_name,
-                    choices=[
-                            Choice(
-                                index=0,
-                                message=Message(role="assistant", reasoning_content=task.extra_state['current_reasoning'][-2].thought.replace("```", ""))
-                            )
-                        ]
+            print(f"Error finalizing response: {e}")
+            # Provide a fallback response
+            yield ChatResponse(
+                id=run_id,
+                object="chat.completion", 
+                created=int(time.time()),
+                model=self.agent_name,
+                choices=[
+                    Choice(
+                        index=0,
+                        message=Message(role="assistant", content="I apologize, but I encountered an error processing your request."),
+                        finish_reason="stop"
                     )
-            except Exception as e:
-                print(e)
-        
-        response = agent.finalize_response(task.task_id)
-        yield ChatResponse(
-            id=run_id,
-            object="chat.completion", 
-            created=int(time.time()),
-            model=self.agent_name,
-            choices=[
-                Choice(
-                    index=0,
-                    message=Message(role="assistant", content=str(response)),
-                    finish_reason="stop"
-                )
-            ]
-        )
+                ]
+            )
 
         temp_path = f"data/agents/{self.agent_name}/temp/{run_id}"
 
