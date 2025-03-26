@@ -66,9 +66,17 @@ class AuditLogsRepository:
         # Iterate over the audit logs and keep only the specified fields
         trimmed_logs = []
         for log in audit_logs:
-            base_trimmed_log = {field: log.get(field) for field in fields_to_keep if field in log}
-            request_payload_trimmed_log = {field: log.get("requestPayload").get(field) for field in REQUEST_PAYLOAD_FIELDS.split(",") if field in log.get("requestPayload")}
-            request_metadata_trimmed_log = {field: log.get("requestMetadata").get(field) for field in REQUEST_METADATA_FIELDS.split(",") if field in log.get("requestMetadata")}
+            def get_nested_value(d, keys):
+                for key in keys:
+                    if isinstance(d, dict):
+                        d = d.get(key)
+                    else:
+                        return None
+                return d
+
+            base_trimmed_log = {field: get_nested_value(log, field.split('.')) for field in fields_to_keep}
+            request_payload_trimmed_log = {field: get_nested_value(log.get("requestPayload", {}), field.split('.')) for field in REQUEST_PAYLOAD_FIELDS.split(",")}
+            request_metadata_trimmed_log = {field: get_nested_value(log.get("requestMetadata", {}), field.split('.')) for field in REQUEST_METADATA_FIELDS.split(",")}
             trimmed_logs.append({**base_trimmed_log, **request_payload_trimmed_log, **request_metadata_trimmed_log})
 
         return trimmed_logs
