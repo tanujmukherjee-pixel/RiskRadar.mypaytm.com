@@ -22,6 +22,7 @@ class BaseAgent:
         self.system_prompt = read_file(f"{PROMPTS_PATH}{SYSTEM_PROMPT_FILE}".format(agent_name=agent_name))
         self.approach_prompt = read_file(f"{PROMPTS_PATH}{APPROACH_PROMPT_FILE}".format(agent_name=agent_name))
         self.output_prompt = read_file(f"{PROMPTS_PATH}{OUTPUT_PROMPT_FILE}".format(agent_name=agent_name))
+        self.tools = []
         for tool_name in tools:
             self.tools.append(tools_service.get_tool(tool_name))
         
@@ -41,7 +42,7 @@ class BaseAgent:
         agent = self.get_agent()
         run_id = str(uuid.uuid4())
 
-        message = f"Session ID: {run_id}\n"
+        message = ""
         for msg in messages:
             message += f"{msg.role}: {msg.content}\n"
         

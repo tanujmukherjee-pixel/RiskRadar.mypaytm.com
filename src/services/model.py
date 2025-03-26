@@ -4,6 +4,7 @@ from ..agents.funnel.funnel import FunnelAgent
 from ..agents.ba.ba import BaAgent
 from ..agents.self_heal.self_heal import SelfHealAgent
 from ..agents.bitbucket.bitbucket import BitbucketAgent
+from ..agents.rc_lookup.rc_lookup import RcLookupAgent
 from ..domains.chat import ModelResponse, ModelsResponse, ChatMessage, ChatResponse, Choice, Message
 from ..rags.base import BaseRAG
 import time
@@ -15,7 +16,8 @@ class ModelService:
             "ba" : BaAgent(),
             "bitbucket" : BitbucketAgent(),
             "neo4j" : BaseRAG("neo4j"),
-            "self-heal" : SelfHealAgent()
+            "self-heal" : SelfHealAgent(),
+            "rc-lookup" : RcLookupAgent()
         }
 
     async def chat_completion(self, model_id: str, messages: List[ChatMessage], max_tokens: Optional[int] = 50, temperature: Optional[float] = 0.7) -> AsyncGenerator[ChatResponse, None]:

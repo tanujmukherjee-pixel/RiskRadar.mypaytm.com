@@ -14,6 +14,17 @@ bootstrap()
 
 load_dotenv(override=True, dotenv_path=".env")
 
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Adjust this to the specific origins you want to allow
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 # @app.middleware("http")
 # async def log_requests(request: Request, call_next):
 #     import logging

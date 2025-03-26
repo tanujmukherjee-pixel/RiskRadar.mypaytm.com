@@ -20,6 +20,8 @@ class BaseRAG:
         """
         Sets up the query engine using OpenAI for LLM and OpenAI for embeddings.
         """
+        print("Initializing RAG for ", self.name)
+
         llm = OpenAI(
             model=os.environ.get("LLM_MODEL"),
             api_key=os.environ.get("OPENAI_API_KEY"),
@@ -38,10 +40,12 @@ class BaseRAG:
         # Check if storage path exists
         storage_path = STORAGE_GRAPH_PATH.format(agent_name=self.name)
         if os.path.exists(storage_path):
+            print("Loading existing index from storage")
             # Load existing index from storage
             storage_context = StorageContext.from_defaults(persist_dir=storage_path)
             index = load_index_from_storage(storage_context)
         else:
+            print("Creating new index")
             # Create new index from documents
             documents = SimpleDirectoryReader(input_dir=DOCS_PATH.format(agent_name=self.name)).load_data()
             index = VectorStoreIndex.from_documents(documents)
