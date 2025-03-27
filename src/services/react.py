@@ -46,6 +46,11 @@ Answer: [your answer here]
 Thought: I cannot answer the question with the provided tools.
 Answer: Sorry, I cannot answer your query.
 
+If you need to ask user for more information, you should respond in the following format:
+
+Thought: I need to ask user for more information.
+Answer: [your question here]
+
 <IMPORTANT>
 Do not respond with an answer if you want to perform any action or doing some analysis. Always respond with Thought and Action if need to perform any action or doing some analysis. If meanwhile want to communicate with user, use Thought.
 </IMPORTANT>
@@ -86,7 +91,7 @@ def react_query_engine(system_prompt, approach_prompt, output_prompt, tools):
     )
 
     react_system_prompt = PromptTemplate(
-        template=system_prompt + "\n\n## Approach\n\n" + approach_prompt + "\n\n## Final Answer\n\n" + output_prompt + "\n\n" + react_system_header_str
+        template=system_prompt + "\n\n## Approach\n\n" + approach_prompt + "\n\n## Formatting\n\n" + output_prompt + "\n\n" + react_system_header_str
     )
 
     agent.update_prompts({"agent_worker:system_prompt": react_system_prompt})
