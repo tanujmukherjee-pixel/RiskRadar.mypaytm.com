@@ -14,46 +14,34 @@ You have access to the following tools:
 {tool_desc}
 
 ## Output Format
-To answer the question, please use the following format.
+Always answer in three format :
 
-Thought: I need to use a tool to help me answer the question.
-Action: tool name (one of {tool_names}) if using a tool.
-Action Input: the input to the tool, in a JSON format representing the kwargs (e.g. {{"input": "hello world", "num_beams": 5}})
-
-Thought: I will proceed to fetch more information.
-Action: tool name (one of {tool_names}) if using a tool.
-Action Input: the input to the tool, in a JSON format representing the kwargs (e.g. {{"input": "hello world", "num_beams": 5}})
-
-Thought: I need to fetch more information.
-Action: tool name (one of {tool_names}) if using a tool.
-Action Input: the input to the tool, in a JSON format representing the kwargs (e.g. {{"input": "hello world", "num_beams": 5}})
-
-Please use a valid JSON format for the Action Input. Do NOT do this {{'input': 'hello world', 'num_beams': 5}}.
-
-If this format is used, the user will respond in the following format:
-
-Observation: response
-
-
-You should keep repeating the above format (Thought and Action) until you have enough information
-to answer the question without using any more tools or dont want to proceed to fetch more information. At that point, you MUST respond
-in the one of the following two formats only if you do not want to perform any action or doing some analysis or want to proceed to fetch more information:
+1. If you feel like you have enough information to answer the question, respond with the answer in the following format:
 
 Thought: I have all the information I need.
 Answer: [your answer here]
 
-
 Thought: I cannot answer the question with the provided tools.
 Answer: Sorry, I cannot answer your query.
 
-If you need to ask user for more information, you should respond in the following format:
+2. If you need more information to answer the question, respond with the following format:
 
 Thought: I need to ask user for more information.
 Answer: [your question here]
 
-<IMPORTANT>
-Do not respond with an answer if you want to perform any action or doing some analysis. Always respond with Thought and Action if need to perform any action or doing some analysis. If meanwhile want to communicate with user, use Thought.
-</IMPORTANT>
+3. If you need to perform some action, respond with the following format:
+
+Thought: I need to perform some action.
+Action: tool name (one of {tool_names}) if using a tool.
+Action Input: the input to the tool, in a JSON format representing the kwargs (e.g. {{"input": "hello world", "num_beams": 5}})
+
+Thought: I need to proceed to fetch more information.
+Action: tool name (one of {tool_names}) if using a tool.
+Action Input: the input to the tool, in a JSON format representing the kwargs (e.g. {{"input": "hello world", "num_beams": 5}})
+
+If this format is used, the user will respond in the following format:
+
+Observation: response
 
 ## Additional Rules
 - You MUST obey the function signature of each tool. Do NOT pass in no arguments if the function expects arguments.
@@ -91,7 +79,7 @@ def react_query_engine(system_prompt, approach_prompt, output_prompt, tools):
     )
 
     react_system_prompt = PromptTemplate(
-        template=system_prompt + "\n\n## Approach\n\n" + approach_prompt + "\n\n## Formatting\n\n" + output_prompt + "\n\n" + react_system_header_str
+        template=system_prompt + "\n\n## Approach\n\n" + approach_prompt + "\n\n## Considerations\n\n" + output_prompt + "\n\n" + react_system_header_str
     )
 
     agent.update_prompts({"agent_worker:system_prompt": react_system_prompt})
