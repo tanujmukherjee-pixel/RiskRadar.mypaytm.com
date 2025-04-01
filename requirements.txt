@@ -21,3 +21,4 @@ aiohttp>=3.9.3
 # Additional dependencies for improved async and concurrency support
 backoff>=2.2.1
 tenacity>=8.2.3
+rank_bm25

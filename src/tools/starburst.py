@@ -7,12 +7,25 @@ from typing import Dict, List, Optional, Tuple, Any, Callable
 
 import pandas as pd
 from trino.dbapi import connect
-from trino.exceptions import TrinoQueryError
+
+
+def fetch_table_schema(table_name: str):
+    """
+    Fetches the schema of a table from the starburst database
+    """
+    query = f"DESCRIBE {table_name}"
+    return execute_query(query)
+
 
 def execute_query(query: str):
     """
     Executes a query on the starburst database
     """
+
+    if "select" not in query.lower():
+        raise ValueError("Fetch dataset first and then use fetch_schema_from_dataset_id_tool to get the schema details")
+
+
     connection = _connect()
     cursor = connection.cursor()
     cursor.execute(query)

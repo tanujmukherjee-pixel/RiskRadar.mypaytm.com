@@ -34,20 +34,20 @@ class BaseAgent:
                 logger.error(f"Error loading tool {tool_name} for agent {agent_name}: {e}")
         
         # Check if docs path exists
-        docs_path = DOCS_PATH.format(agent_name=agent_name)
-        if os.path.exists(docs_path):
-            try:
-                rag = BaseRAG(agent_name)
-                query_engine_tool = QueryEngineTool(
-                    query_engine=rag.get_query_engine(), 
-                    metadata=ToolMetadata(
-                        name=agent_name, 
-                        description=f"Contains docs related to {agent_name}"
-                    )
-                )
-                self.tools.append(query_engine_tool)
-            except Exception as e:
-                logger.error(f"Error setting up RAG for agent {agent_name}: {e}")
+        # docs_path = DOCS_PATH.format(agent_name=agent_name)
+        # if os.path.exists(docs_path):
+        #     try:
+        #         rag = BaseRAG(agent_name)
+        #         query_engine_tool = QueryEngineTool(
+        #             query_engine=rag.get_query_engine(), 
+        #             metadata=ToolMetadata(
+        #                 name=agent_name, 
+        #                 description=f"Contains docs related to {agent_name}"
+        #             )
+        #         )
+        #         self.tools.append(query_engine_tool)
+        #     except Exception as e:
+        #         logger.error(f"Error setting up RAG for agent {agent_name}: {e}")
 
         self.agent = self.get_agent()
 

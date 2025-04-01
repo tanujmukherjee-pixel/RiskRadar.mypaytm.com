@@ -11,6 +11,9 @@ def fetch_rule_info(rule_name: str, rule_version: str, source: str):
         "Authorization": f"Bearer {RULE_ADMIN_TOKEN}"
     }
 
+    print(url)
+    print(headers)
+
     response = get_request(url, headers=headers)
 
     return response

@@ -3,7 +3,7 @@ from .mongo import execute_query_mongo
 from ..utils.time import get_current_date
 from llama_index.core.tools import FunctionTool
 from .cdp import fetch_all_datasets, fetch_schema_name_from_dataset_id
-from .starburst import execute_query, fetch_permitted_schemas, fetch_permitted_tables
+from .starburst import execute_query, fetch_permitted_schemas, fetch_permitted_tables, fetch_table_schema
 from .bitbucket import get_workspace_info, get_repository_info, get_commits, analyze_contributions, get_all_branches, get_all_repositories, call_bitbucket_api
 from .self_heal import drain_node, cordon_node, uncordon_node, get_dns_hostname, clean_up_node, get_node, install_awscli, get_node_instance_id
 from .kibana import fetch_logs, fetch_all_logs
@@ -42,6 +42,7 @@ get_node_instance_id_tool = FunctionTool.from_defaults(fn=get_node_instance_id)
 fetch_logs_tool = FunctionTool.from_defaults(fn=fetch_logs)
 fetch_all_logs_tool = FunctionTool.from_defaults(fn=fetch_all_logs)
 fetch_rule_info_tool = FunctionTool.from_defaults(fn=fetch_rule_info)
+fetch_table_schema_tool = FunctionTool.from_defaults(fn=fetch_table_schema)
 tools = {
     "druid_tool": druid_tool,
     "segments_tool": segments_tool,
@@ -51,7 +52,7 @@ tools = {
     "mongo_tool": mongo_tool,
     "current_date_tool": current_date_tool,
     "fetch_all_datasets_tool": fetch_all_datasets_tool,
-    "fetch_schema_name_from_dataset_id_tool": fetch_schema_name_from_dataset_id_tool,
+    "fetch_schema_from_dataset_id_tool": fetch_schema_name_from_dataset_id_tool,
     "execute_query_tool": execute_query_tool,
     "get_workspace_info_tool": get_workspace_info_tool,
     "get_repository_info_tool": get_repository_info_tool,
@@ -74,5 +75,6 @@ tools = {
     "get_node_instance_id": get_node_instance_id_tool,
     "fetch_logs_tool": fetch_logs_tool,
     "fetch_all_logs_tool": fetch_all_logs_tool,
-    "fetch_rule_info_tool": fetch_rule_info_tool
+    "fetch_rule_info_tool": fetch_rule_info_tool,
+    "fetch_table_schema_tool": fetch_table_schema_tool
 }
