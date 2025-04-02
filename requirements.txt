@@ -22,3 +22,6 @@ aiohttp>=3.9.3
 backoff>=2.2.1
 tenacity>=8.2.3
 rank_bm25
+# Google OAuth dependencies
+google-auth>=2.29.0
+google-auth-httplib2>=0.1.1

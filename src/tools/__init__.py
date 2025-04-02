@@ -7,7 +7,7 @@ from .starburst import execute_query, fetch_permitted_schemas, fetch_permitted_t
 from .bitbucket import get_workspace_info, get_repository_info, get_commits, analyze_contributions, get_all_branches, get_all_repositories, call_bitbucket_api
 from .self_heal import drain_node, cordon_node, uncordon_node, get_dns_hostname, clean_up_node, get_node, install_awscli, get_node_instance_id
 from .kibana import fetch_logs, fetch_all_logs
-from .rule_admin import fetch_rule_info
+from .rule_admin import fetch_rule_info, calculate_cooloff_period
 
 druid_tool = FunctionTool.from_defaults(fn=execute_query_pulse)
 segments_tool = FunctionTool.from_defaults(fn=fetch_all_segments)
@@ -43,6 +43,7 @@ fetch_logs_tool = FunctionTool.from_defaults(fn=fetch_logs)
 fetch_all_logs_tool = FunctionTool.from_defaults(fn=fetch_all_logs)
 fetch_rule_info_tool = FunctionTool.from_defaults(fn=fetch_rule_info)
 fetch_table_schema_tool = FunctionTool.from_defaults(fn=fetch_table_schema)
+calculate_cooloff_period_tool = FunctionTool.from_defaults(fn=calculate_cooloff_period)
 tools = {
     "druid_tool": druid_tool,
     "segments_tool": segments_tool,
@@ -76,5 +77,6 @@ tools = {
     "fetch_logs_tool": fetch_logs_tool,
     "fetch_all_logs_tool": fetch_all_logs_tool,
     "fetch_rule_info_tool": fetch_rule_info_tool,
-    "fetch_table_schema_tool": fetch_table_schema_tool
+    "fetch_table_schema_tool": fetch_table_schema_tool,
+    "calculate_cooloff_period_tool": calculate_cooloff_period_tool
 }
