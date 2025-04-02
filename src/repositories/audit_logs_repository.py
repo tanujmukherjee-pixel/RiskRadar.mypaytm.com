@@ -77,6 +77,11 @@ class AuditLogsRepository:
             base_trimmed_log = {field: get_nested_value(log, field.split('.')) for field in fields_to_keep}
             request_payload_trimmed_log = {field: get_nested_value(log.get("requestPayload", {}), field.split('.')) for field in REQUEST_PAYLOAD_FIELDS.split(",")}
             request_metadata_trimmed_log = {field: get_nested_value(log.get("requestMetadata", {}), field.split('.')) for field in REQUEST_METADATA_FIELDS.split(",")}
+            # Extract the 'action' array and keep only the first object if it exists
+            action_trimmed_log = {}
+            action_array = log.get("actions", [])
+            if action_array:
+                action_trimmed_log["rule_result"] = action_array[0]
             trimmed_logs.append({**base_trimmed_log, **request_payload_trimmed_log, **request_metadata_trimmed_log})
 
         return trimmed_logs
