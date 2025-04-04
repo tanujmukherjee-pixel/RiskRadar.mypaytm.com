@@ -2,7 +2,7 @@ import pandas as pd
 from ..utils.api import get_request
 from typing import List
 import os
-
+from ..constants.cdp import PERMITTED_DATASETS
 session_map = {}
 
 
@@ -22,7 +22,13 @@ def fetch_all_datasets(regex: str):
         df = df[df['status'] == 'ACTIVE'][['id', 'name', 'description']]
 
         filtered_df = pd.DataFrame()
-        filtered_df = df[df['name'].str.contains(keyword, case=False, na=False) | df['description'].str.contains(keyword, case=False, na=False)]
+
+        permitted_datasets = PERMITTED_DATASETS
+        if len(permitted_datasets) > 0 and permitted_datasets[0] != "":
+            filtered_df = df[df['name'].isin(permitted_datasets)]
+        else:
+            filtered_df = df
+        filtered_df = filtered_df[filtered_df['name'].str.contains(keyword, case=False, na=False) | filtered_df['description'].str.contains(keyword, case=False, na=False)]
         results.extend(filtered_df.to_dict(orient="records"))
     
     return results
