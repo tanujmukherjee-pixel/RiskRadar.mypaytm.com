@@ -4,10 +4,9 @@ import tempfile
 import time
 import random
 from typing import Dict, List, Optional, Tuple, Any, Callable
-
 import pandas as pd
 from trino.dbapi import connect
-
+from ..constants.cdp import PERMITTED_DATABASES, PERMITTED_TABLES
 
 def fetch_table_schema(table_name: str):
     """
@@ -22,8 +21,8 @@ def execute_query(query: str):
     Executes a query on the starburst database
     """
 
-    if "select" not in query.lower():
-        raise ValueError("Fetch dataset first and then use fetch_schema_from_dataset_id_tool to get the schema details")
+    # if "select" not in query.lower():
+    #     raise ValueError("Fetch dataset first and then use fetch_schema_from_dataset_id_tool to get the schema details")
 
 
     connection = _connect()
@@ -50,7 +49,12 @@ def fetch_permitted_schemas() -> List[str]:
     query = """
     SHOW SCHEMAS
     """
-    return execute_query(query)
+
+    permitted_schemas = []
+    for schema in execute_query(query):
+        if schema[0] in PERMITTED_DATABASES:
+            permitted_schemas.append(schema[0])
+    return permitted_schemas
 
 
 def fetch_permitted_tables(schema: str) -> List[str]:
@@ -60,4 +64,8 @@ def fetch_permitted_tables(schema: str) -> List[str]:
     query = f"""
     SHOW TABLES IN {schema}
     """ 
-    return execute_query(query)
+    permitted_tables = []
+    for table in execute_query(query):
+        if table[0] in PERMITTED_TABLES:
+            permitted_tables.append(table[0])
+    return permitted_tables
