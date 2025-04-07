@@ -6,7 +6,7 @@ from .cdp import fetch_all_datasets, fetch_schema_name_from_dataset_id
 from .starburst import execute_query, fetch_permitted_schemas, fetch_permitted_tables, fetch_table_schema
 from .bitbucket import get_workspace_info, get_repository_info, get_commits, analyze_contributions, get_all_branches, get_all_repositories, call_bitbucket_api
 from .self_heal import drain_node, cordon_node, uncordon_node, get_dns_hostname, clean_up_node, get_node, install_awscli, get_node_instance_id
-from .kibana import fetch_logs, fetch_all_logs
+from .kibana import fetch_all_logs, fetch_logs_timerange
 from .rule_admin import fetch_rule_info, calculate_cooloff_period
 
 druid_tool = FunctionTool.from_defaults(fn=execute_query_pulse)
@@ -39,11 +39,11 @@ clean_up_node_tool = FunctionTool.from_defaults(fn=clean_up_node)
 get_node_tool = FunctionTool.from_defaults(fn=get_node)
 install_awscli_tool = FunctionTool.from_defaults(fn=install_awscli)
 get_node_instance_id_tool = FunctionTool.from_defaults(fn=get_node_instance_id)
-fetch_logs_tool = FunctionTool.from_defaults(fn=fetch_logs)
 fetch_all_logs_tool = FunctionTool.from_defaults(fn=fetch_all_logs)
 fetch_rule_info_tool = FunctionTool.from_defaults(fn=fetch_rule_info)
 fetch_table_schema_tool = FunctionTool.from_defaults(fn=fetch_table_schema)
 calculate_cooloff_period_tool = FunctionTool.from_defaults(fn=calculate_cooloff_period)
+fetch_logs_timerange_tool = FunctionTool.from_defaults(fn=fetch_logs_timerange)
 tools = {
     "druid_tool": druid_tool,
     "segments_tool": segments_tool,
@@ -74,9 +74,9 @@ tools = {
     "get_node": get_node_tool,
     "install_awscli": install_awscli_tool,
     "get_node_instance_id": get_node_instance_id_tool,
-    "fetch_logs_tool": fetch_logs_tool,
     "fetch_all_logs_tool": fetch_all_logs_tool,
     "fetch_rule_info_tool": fetch_rule_info_tool,
     "fetch_table_schema_tool": fetch_table_schema_tool,
-    "calculate_cooloff_period_tool": calculate_cooloff_period_tool
+    "calculate_cooloff_period_tool": calculate_cooloff_period_tool,
+    "fetch_logs_timerange_tool": fetch_logs_timerange_tool
 }

@@ -3,7 +3,7 @@ from ..constants.rule_admin import RULE_ADMIN_URL, RULE_ADMIN_TOKEN
 from ..utils.auth import generate_token_for_user_email
 from typing import Optional
 from ..constants.kibana import REQUEST_PAYLOAD_FIELDS, REQUEST_METADATA_FIELDS, BASE_FIELDS
-from .kibana import fetch_logs
+from .kibana import fetch_logs_timerange
 from datetime import datetime, timedelta
 
 def fetch_rule_info(rule_name: str, rule_version: str, source: str):
@@ -48,7 +48,10 @@ def calculate_cooloff_period(id_key: str, id_value: str, source: str, time_perio
     
     index_filter = generate_index_filter(id_key, id_value)
 
-    logs = fetch_logs(index_filter, int(time_period))
+    start_time = datetime.utcnow() - timedelta(seconds=int(time_period))
+    end_time = datetime.utcnow()
+
+    logs = fetch_logs_timerange(index_filter, start_time, end_time)
 
     total_amount = 0
     transaction_count = 0

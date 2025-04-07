@@ -14,29 +14,26 @@ class AuditLogsRepository:
         self.elasticsearch_client = Elasticsearch([elasticsearch_host])
         self.index_pattern = index_pattern
 
-    def search_audit_logs(self, lucene_query: str, delta_time: int = 3600, page_size: int = 100, timeout: int = 30):
+    def search_audit_logs_timerange(self, lucene_query: str, start_time: str, end_time: str, page_size: int = 100, timeout: int = 30):
         """
         Search audit logs using a Lucene query and filter by the last delta_time seconds.
 
         :param lucene_query: The Lucene query string.
         :param page_size: The number of logs to fetch per page.
         :param timeout: The timeout for the search request in seconds.
-        :return: A list of audit logs matching the query.
         """
         audit_logs = []
         try:
-            now = datetime.utcnow()
-            delta_time_ago = now - timedelta(seconds=delta_time)
-
-            # Convert the time to string in the format Elasticsearch expects (ISO 8601 format)
-            start_time = delta_time_ago.strftime('%Y-%m-%dT%H:%M:%SZ')
+            # Convert start and end times to Elasticsearch format
+            start_time = datetime.strptime(start_time + "T00:00:00", '%Y-%m-%dT%H:%M:%S')
+            end_time = datetime.strptime(end_time + "T23:59:59", '%Y-%m-%dT%H:%M:%S')
 
             # Create a search instance
             s = Search(using=self.elasticsearch_client, index=self.index_pattern)
 
             # Apply the Lucene query with the timestamp filter
             s = s.query("query_string", query=lucene_query)
-            s = s.filter("range", **{"@timestamp": {"gte": start_time}})
+            s = s.filter("range", **{"@timestamp": {"gte": start_time, "lte": end_time}})
 
             # Configure pagination
             s = s.extra(size=page_size)
@@ -49,7 +46,8 @@ class AuditLogsRepository:
                 audit_logs.append(hit.to_dict())
 
         except Exception as e:
-            print(f"Error executing Lucene query '{lucene_query}': {e}")
+            error = f"Error executing Lucene query '{lucene_query}': {e}"
+            return error
 
         return self.trim(audit_logs)
 
