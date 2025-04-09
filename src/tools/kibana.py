@@ -8,9 +8,9 @@ def fetch_logs_timerange(id, start_time=None, end_time=None):
     Fetch logs from Kibana (Elasticsearch) based on an id and start and end time.
     """
     if end_time is None:
-        end_time = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
+        end_time = datetime.utcnow().strftime('%Y-%m-%d')
     if start_time is None:
-        start_time = (datetime.utcnow() - timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%S')
+        start_time = (datetime.utcnow() - timedelta(days=1)).strftime('%Y-%m-%d')
     
     repository = AuditLogsRepository(elasticsearch_host=ELASTICSEARCH_HOST)
     logs = list(repository.search_audit_logs_timerange(f"actionRecommended : BLOCK and {id}", start_time, end_time))
