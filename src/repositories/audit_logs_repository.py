@@ -37,7 +37,7 @@ class AuditLogsRepository:
             s = s.extra(
                 track_total_hits=False,
                 version=True,
-                _source=False
+                _source=True  # Changed to True to get all fields
             )
 
             # Configure sorting
