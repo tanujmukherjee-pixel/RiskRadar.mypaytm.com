@@ -13,7 +13,7 @@ def fetch_logs_timerange(id, start_time=None, end_time=None):
         start_time = (datetime.utcnow() - timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%S')
     
     repository = AuditLogsRepository(elasticsearch_host=ELASTICSEARCH_HOST)
-    logs = list(repository.search_audit_logs_timerange(id, start_time, end_time))
+    logs = list(repository.search_audit_logs_timerange(f"actionRecommended : BLOCK and {id}", start_time, end_time))
     return logs
 
 
