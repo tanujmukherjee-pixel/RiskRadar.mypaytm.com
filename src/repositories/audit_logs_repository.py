@@ -14,13 +14,15 @@ class AuditLogsRepository:
         self.elasticsearch_client = Elasticsearch([elasticsearch_host])
         self.index_pattern = index_pattern
 
-    def search_audit_logs_timerange(self, lucene_query: str, start_time: str, end_time: str, page_size: int = 100, timeout: int = 30):
+    def search_audit_logs_timerange(self, lucene_query: str, start_time: str, end_time: str, page_size: int = 500, timeout: int = 300):
         """
         Search audit logs using a Lucene query and filter by the last delta_time seconds.
 
         :param lucene_query: The Lucene query string.
         :param page_size: The number of logs to fetch per page.
         :param timeout: The timeout for the search request in seconds.
+        :param start_time: The start time for the search. format: YYYY-MM-DD
+        :param end_time: The end time for the search. format: YYYY-MM-DD
         """
         audit_logs = []
         try:
@@ -31,9 +33,81 @@ class AuditLogsRepository:
             # Create a search instance
             s = Search(using=self.elasticsearch_client, index=self.index_pattern)
 
-            # Apply the Lucene query with the timestamp filter
-            s = s.query("query_string", query=lucene_query)
-            s = s.filter("range", **{"@timestamp": {"gte": start_time, "lte": end_time}})
+            # Configure the search with the provided request structure
+            s = s.extra(
+                track_total_hits=False,
+                version=True,
+                _source=False
+            )
+
+            # Configure sorting
+            s = s.sort({"dateInserted": {"order": "desc", "unmapped_type": "boolean"}})
+
+            # Configure fields
+            s = s.extra(
+                fields=[
+                    {"field": "*", "include_unmapped": "true"},
+                    {"field": "@timestamp", "format": "strict_date_optional_time"},
+                    {"field": "actions.configData.threshold_date", "format": "strict_date_optional_time"},
+                    {"field": "dateInserted", "format": "strict_date_optional_time"},
+                    {"field": "requestPayload.oeMetaData.kycDetails.dateOfBirth", "format": "strict_date_optional_time"},
+                    {"field": "requestPayload.oeMetaData.kycDetails.dateOfIncorporation", "format": "strict_date_optional_time"},
+                    {"field": "requestPayload.updatedAt", "format": "strict_date_optional_time"}
+                ],
+                stored_fields=["*"]
+            )
+
+            # Configure highlight
+            s = s.highlight(
+                "*",
+                pre_tags=["@kibana-highlighted-field@"],
+                post_tags=["@/kibana-highlighted-field@"],
+                fragment_size=2147483647
+            )
+
+            # Build the bool query
+            bool_query = {
+                "bool": {
+                    "must": [],
+                    "filter": [
+                        {
+                            "bool": {
+                                "filter": [
+                                    {
+                                        "bool": {
+                                            "should": [
+                                                {"match": {"actionRecommended": "BLOCK"}}
+                                            ],
+                                            "minimum_should_match": 1
+                                        }
+                                    },
+                                    {
+                                        "multi_match": {
+                                            "type": "best_fields",
+                                            "query": lucene_query,
+                                            "lenient": True
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "range": {
+                                "dateInserted": {
+                                    "format": "strict_date_optional_time",
+                                    "gte": start_time,
+                                    "lte": end_time
+                                }
+                            }
+                        }
+                    ],
+                    "should": [],
+                    "must_not": []
+                }
+            }
+
+            # Apply the query
+            s = s.query(bool_query)
 
             # Configure pagination
             s = s.extra(size=page_size)
