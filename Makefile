@@ -91,7 +91,6 @@ docs:
 
 docker_build_for_deployment: ## Build and push Docker image for deployment.
 	@echo "Building & pushing Docker image ${VERSION} to ${ECR_REPO}..."
-	python3 -m build
 	docker build -t ${IMAGE_NAME}:${VERSION} .
 	aws ecr get-login-password --region ap-south-1 | docker login -u AWS --password-stdin ${ECR_REPO}
 	docker tag ${IMAGE_NAME}:${VERSION} ${ECR_REPO}:${VERSION}
@@ -100,7 +99,6 @@ docker_build_for_deployment: ## Build and push Docker image for deployment.
 
 docker_build_for_deployment_multiple_tags: ## Build and push Docker image with multiple tags.
 	@echo "Building & pushing Docker image ${VERSION} and ${ADDITIONAL_VERSION} to ${ECR_REPO}..."
-	python3 -m build
 	docker build -t ${IMAGE_NAME}:${VERSION} .
 	aws ecr get-login-password --region ap-south-1 | docker login -u AWS --password-stdin ${ECR_REPO}
 	docker tag ${IMAGE_NAME}:${VERSION} ${ECR_REPO}:${VERSION}
