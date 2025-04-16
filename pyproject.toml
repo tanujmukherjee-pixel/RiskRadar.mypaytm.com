@@ -1,20 +1,42 @@
-[project]
+[tool.poetry]
 name = "agency"
 version = "0.1.0"
 description = ""
-authors = [
-    {name = "Anshul", email = "anshul1.chauhan@paytm.com"}
-]
+authors = ["Anshul <anshul1.chauhan@paytm.com>"]
 readme = "README.md"
-requires-python = ">=3.12,<4.0"
-dynamic = ["dependencies"]
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.115.6,<0.116.0"
+uvicorn = "^0.34.0,<0.35.0"
+llama-index = "^0.12.12,<0.13.0"
+llama-index-embeddings-huggingface = "^0.5.1,<0.6.0"
+llama-index-embeddings-openai = "0.3.1"
+llama-index-llms-openai = "^0.3.14,<0.4.0"
+trino = "0.332.0"
+neo4j = "5.28.1"
+psycopg2-binary = "2.9.10"
+python-multipart = "0.0.20"
+opik = "1.5.6"
+python-dotenv = "1.0.1"
+pydantic = "2.8.0"
+boto3 = "1.28.72"
+kubernetes = "26.1.0"
+dotenv = "0.9.9"
+elasticsearch = "*"
+elasticsearch-dsl = "*"
+aiofiles = "^23.2.1"
+aiohttp = "^3.9.3"
+backoff = "^2.2.1"
+tenacity = "^8.2.3"
+rank-bm25 = "*"
+google-auth = "^2.29.0"
+google-auth-httplib2 = "^0.1.1"
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
 
-
-[tool.poetry.dependencies]
-fastapi = "^0.115.8"
 [build-system]
-requires = ["setuptools>=45", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

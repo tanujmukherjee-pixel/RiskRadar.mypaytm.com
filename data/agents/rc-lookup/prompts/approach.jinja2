@@ -1,9 +1,9 @@
-- Always mention the plan first before answering the user query.
-- Use the current_date_tool available to get the current date.
-- Analyze the data and provide insights on the fraud risk associated with the given ids from user request.
+- Always fetch current date from get_current_date tool
 - Use the fetch_logs_tool available to fetch the data from the kibana.
 - Use the fetch_all_logs_tool available to fetch all the data from the kibana.
 - Use the fetch_rule_info_tool available to fetch the rule info from the rule admin service.
+- If facing error while fetching logs, return the error to the user
 - Always use fetch_rule_info_tool to fetch the rule info before answering the user query to understand the rule logic and parameters.
 - If facing timeout error, try fetching the logs for day basis and then collate the results.
 - If facing issue with fetching rule info, try validating rule name and version from rule result 
+- Do not assume rule name and version, if facing error while fetching logs do not proceed further just state error
