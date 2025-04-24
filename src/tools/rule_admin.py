@@ -51,7 +51,7 @@ def calculate_cooloff_period(id_key: str, id_value: str, source: str, time_perio
     start_time = datetime.utcnow() - timedelta(seconds=int(time_period))
     end_time = datetime.utcnow()
 
-    logs = fetch_logs_timerange(index_filter, start_time, end_time)
+    logs = fetch_logs_timerange(index_filter, start_time.strftime('%Y-%m-%d'), end_time.strftime('%Y-%m-%d'))
 
     total_amount = 0
     transaction_count = 0
@@ -69,6 +69,8 @@ def calculate_cooloff_period(id_key: str, id_value: str, source: str, time_perio
         last_valid_log = log
 
     if last_valid_log:
+        if isinstance(last_valid_log["@timestamp"], list):
+            last_valid_log["@timestamp"] = last_valid_log["@timestamp"][0]
         last_transaction_time = datetime.strptime(last_valid_log["@timestamp"], '%Y-%m-%dT%H:%M:%S.%fZ')
         cooloff_end_time = last_transaction_time + timedelta(seconds=int(time_period))
         return cooloff_end_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ')[:-3] + 'Z'
