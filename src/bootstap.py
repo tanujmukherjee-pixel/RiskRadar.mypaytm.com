@@ -1,6 +1,7 @@
 from .services.tools import tools_service
 from .services.agent import agent_service
 from .services.model import model_service
+from .services.docs import fetch_all_docs
 import asyncio
 import logging
 import time
@@ -21,6 +22,9 @@ async def bootstrap_async():
     start_time = time.time()
     logger.info("Starting application bootstrap...")
     
+    # Fetch all docs
+    fetch_all_docs()
+
     # Run tools and agents bootstrapping concurrently
     await asyncio.gather(
         tools_service.bootstrap(),

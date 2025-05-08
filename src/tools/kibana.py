@@ -34,15 +34,23 @@ def fetch_logs_timerange(id, start_time, end_time):
     
     print(f"{start_time} {end_time}")
 
-    repository = AuditLogsRepository(elasticsearch_host=ELASTICSEARCH_HOST)
-    logs = list(repository.search_audit_logs_timerange(f"{id}", start_time, end_time))
-    return logs
+    ES_HOSTS = ELASTICSEARCH_HOST.split(",")
+    for host in ES_HOSTS:
+        repository = AuditLogsRepository(elasticsearch_host=host)
+        logs = list(repository.search_audit_logs_timerange(f"{id}", start_time, end_time))
+        if len(logs) > 0:
+            return logs
+    return []
 
 
 def fetch_all_logs(delta_time=3600):
     """
     Fetch all logs from Kibana (Elasticsearch) based on delta time in seconds.
     """
-    repository = AuditLogsRepository(elasticsearch_host=ELASTICSEARCH_HOST)
-    logs = repository.search_audit_logs("*", delta_time)
-    return logs
+    ES_HOSTS = ELASTICSEARCH_HOST.split(",")
+    for host in ES_HOSTS:
+        repository = AuditLogsRepository(elasticsearch_host=host)
+        logs = repository.search_audit_logs("*", delta_time)
+        if len(logs) > 0:
+            return logs
+    return []

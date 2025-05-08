@@ -1,7 +1,7 @@
 from ..agents.base import BaseAgent
 from ..domain.agent_request import AgentRequest
 from ..services.model import model_service
-from ..constants.path import PROMPTS_PATH, SYSTEM_PROMPT_FILE, APPROACH_PROMPT_FILE, OUTPUT_PROMPT_FILE
+from ..constants.path import PROMPTS_PATH, SYSTEM_PROMPT_FILE, APPROACH_PROMPT_FILE, OUTPUT_PROMPT_FILE, DOCS_PATH
 import os
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
@@ -46,6 +46,11 @@ class AgentService:
         
         # Save prompts to disk
         await self._save_prompts(agent_request.name, prompts)
+
+        print(f"Saving prompts to disk: {agent_request.name}")
+
+        # Fetch docs from s3
+        await self.fetch_docs_from_s3(agent_request.name)
         
         # Create and register the agent
         agent = BaseAgent(agent_request.name, agent_request.list_of_tools)
@@ -54,6 +59,15 @@ class AgentService:
         logger.info(f"Agent '{agent_request.name}' created")
         return agent
     
+    async def fetch_docs_from_s3(self, agent_name: str):
+        """Fetch docs from s3 and save to disk."""
+        try:
+            print(f"Fetching docs from s3: {agent_name}")
+            await fetch_docs_from_s3(agent_name, f"{DOCS_PATH.format(agent_name=agent_name)}/")
+        except Exception as e:
+            logger.error(f"Error fetching docs from s3: {e}")
+            raise e
+
     async def delete_agent(self, agent_name: str):
         """Delete an agent with thread safety and concurrency."""
         try:
@@ -128,6 +142,8 @@ class AgentService:
             # Save prompts to disk
             await self._save_prompts(agent['name'], prompts)
             
+            await self.fetch_docs_from_s3(agent['name'])
+
             # Create base agent - this could be CPU intensive
             loop = asyncio.get_event_loop()
             base_agent = await loop.run_in_executor(

@@ -1,4 +1,5 @@
 from ..base import BaseAgent
+from ...constants.cdp import ENABLE_ALL_ACCESS
 
 class BaAgent(BaseAgent):
     def __init__(self):

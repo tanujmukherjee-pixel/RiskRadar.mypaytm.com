@@ -13,14 +13,22 @@ def fetch_rule_info(rule_name: str, rule_version: str, source: str):
 
     token = generate_token_for_user_email(disable_ssl_verification=True)
 
-    url = f"{RULE_ADMIN_URL}/v2/domains/{source}/rules/{rule_name}/{rule_version}"
-    headers = {
-        "Authorization": f"Bearer {token['access_token']}"
-    }
+    RULE_ADMIN_URLS = RULE_ADMIN_URL.split(",")
+    for url in RULE_ADMIN_URLS:
+        try:
+            url = f"{url}/v2/domains/{source}/rules/{rule_name}/{rule_version}"
+            print(url)
+            headers = {
+                "Authorization": f"Bearer {token['access_token']}"
+            }
 
-    response = get_request(url, headers=headers)
+            response = get_request(url, headers=headers)
+            if response.status_code == 200:
+                return response.json()
+        except Exception as e:
+            continue
 
-    return response
+    return None
 
 
 def generate_index_filter(id_key: str, id_value: str):

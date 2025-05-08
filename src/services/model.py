@@ -5,6 +5,7 @@ from ..agents.ba.ba import BaAgent
 from ..agents.self_heal.self_heal import SelfHealAgent
 from ..agents.bitbucket.bitbucket import BitbucketAgent
 from ..agents.rc_lookup.rc_lookup import RcLookupAgent
+from ..agents.cst.cst import CSTAgent
 from ..domains.chat import ModelResponse, ModelsResponse, ChatMessage, ChatResponse, Choice, Message
 from ..rags.base import BaseRAG
 import time
@@ -33,7 +34,7 @@ class ModelService:
             "ba": lambda: BaAgent(),
             "bitbucket": lambda: BitbucketAgent(),
             "neo4j": lambda: BaseRAG("neo4j"),
-            "self-heal": lambda: SelfHealAgent(),
+            # "self-heal": lambda: SelfHealAgent(),
             "rc-lookup": lambda: RcLookupAgent()
         }
         

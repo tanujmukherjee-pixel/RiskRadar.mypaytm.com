@@ -34,20 +34,20 @@ class BaseAgent:
                 logger.error(f"Error loading tool {tool_name} for agent {agent_name}: {e}")
         
         # Check if docs path exists
-        # docs_path = DOCS_PATH.format(agent_name=agent_name)
-        # if os.path.exists(docs_path):
-        #     try:
-        #         rag = BaseRAG(agent_name)
-        #         query_engine_tool = QueryEngineTool(
-        #             query_engine=rag.get_query_engine(), 
-        #             metadata=ToolMetadata(
-        #                 name=agent_name, 
-        #                 description=f"Contains docs related to {agent_name}"
-        #             )
-        #         )
-        #         self.tools.append(query_engine_tool)
-        #     except Exception as e:
-        #         logger.error(f"Error setting up RAG for agent {agent_name}: {e}")
+        docs_path = DOCS_PATH.format(agent_name=agent_name)
+        if os.path.exists(docs_path):
+            try:
+                rag = BaseRAG(agent_name)
+                query_engine_tool = QueryEngineTool(
+                    query_engine=rag.get_query_engine(), 
+                    metadata=ToolMetadata(
+                        name=agent_name, 
+                        description=f"Contains docs related to {agent_name}"
+                    )
+                )
+                self.tools.append(query_engine_tool)
+            except Exception as e:
+                logger.error(f"Error setting up RAG for agent {agent_name}: {e}")
 
         self.agent = self.get_agent()
 
@@ -92,7 +92,7 @@ class BaseAgent:
             task = agent.create_task(message)
 
             # Handle first reasoning step
-            step_output = agent.run_step(task.task_id)
+            step_output = await agent.arun_step(task.task_id)
             
             # Get first reasoning step content safely
             try:
@@ -128,7 +128,7 @@ class BaseAgent:
 
             # Continue with additional reasoning steps
             while not step_output.is_last:
-                step_output = agent.run_step(task.task_id)
+                step_output = await agent.arun_step(task.task_id)
                 
                 try:
                     if task.extra_state and 'current_reasoning' in task.extra_state and len(task.extra_state['current_reasoning']) >= 1:
@@ -157,7 +157,7 @@ class BaseAgent:
             
             # Generate final response
             try:
-                response = agent.finalize_response(task.task_id)
+                response = await agent.afinalize_response(task.task_id)
                 yield ChatResponse(
                     id=run_id,
                     object="chat.completion", 
@@ -205,6 +205,7 @@ class BaseAgent:
             # Clean up in a non-blocking way
             if os.path.exists(temp_path):
                 asyncio.create_task(self._cleanup_temp_dir(temp_path))
+            return
     
     async def _cleanup_temp_dir(self, temp_path: str):
         """Asynchronously clean up temporary directory."""

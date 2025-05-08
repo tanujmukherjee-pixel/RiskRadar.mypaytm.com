@@ -54,3 +54,6 @@ data/tools/*
 .env
 *venv*
 *storage-graph*
+
+*.svg
+*.prof
