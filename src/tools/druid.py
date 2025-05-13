@@ -8,6 +8,9 @@ import urllib.parse
 import uuid
 import os
 from typing import List
+from dotenv import load_dotenv
+load_dotenv()
+
 pulse_cookie = os.getenv("PULSE_COOKIE")
 imply_cookie = os.getenv("IMPLY_COOKIE")
 
@@ -25,6 +28,7 @@ def get_all_funnels():
         }
 
     funnel_reponse = get_request("https://pulse.bi.mypaytm.com/api/v1/chart/list/funnelhub_viz", headers)
+    print(funnel_reponse)
     result = [
         {
             "funnel_name": item["slice_name"],
@@ -37,16 +41,32 @@ def get_all_funnels():
     ]
     return result
 
-def fetch_query(funnel_id, funnel_name, session_id, segment_query = None):
+def fetch_query(funnel_id, funnel_name, session_id, segment_query = None, funnel_type = None):
     """
     Fetches the file path for the query for the funnel for a given segment and if not provided any segment, fetches query corresponding to the funnel across all segments
+    Available funnel types are None,"close" and "open"
     """
     
     headers = {
         "Cookie": pulse_cookie,
         "Content-Type": "application/json",
     }
-    query_context = get_request(f"https://pulse.bi.mypaytm.com/api/v1/chart/{funnel_id}", headers)["result"]["query_context"]
+    funnel_info = get_request(f"https://pulse.bi.mypaytm.com/api/v1/chart/{funnel_id}", headers)["result"]
+    query_context = funnel_info["query_context"]
+    params = funnel_info["params"]
+    if funnel_type is None:
+        funnel_type = "open"  # Default to open funnel type
+        try:
+            # Parse the params JSON to extract funnel type
+            params_dict = json.loads(params)
+            if "run_time_metric" in params_dict and "data" in params_dict["run_time_metric"]:
+                if "type" in params_dict["run_time_metric"]["data"]:
+                    funnel_type = params_dict["run_time_metric"]["data"]["type"]
+        except (json.JSONDecodeError, KeyError, TypeError) as e:
+            print(f"Error parsing funnel type from params: {e}")
+            # Keep the default funnel_type if there's an error
+
+    print(f"funnel_type : {funnel_type}")
 
     query_params = {
         "form_data": f'{{"slice_id":{funnel_id}}}',
@@ -62,12 +82,13 @@ def fetch_query(funnel_id, funnel_name, session_id, segment_query = None):
     if segment_query:
         payload = add_segment_query(payload, segment_query)
     base_query = post_request(url, headers, payload)
+    print(base_query)
     query = json.loads(base_query["result"][0]["query"])
     generated_uuid = str(uuid.uuid4())
-    folder_path = f"data/agents/devrev/temp/{session_id}"
+    folder_path = f"data/agents/funnel/temp/{session_id}"
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
-    file_path = f"data/agents/devrev/temp/{session_id}/druid_query_{generated_uuid}.json"
+    file_path = f"data/agents/funnel/temp/{session_id}/druid_query_{generated_uuid}_{funnel_type}.json"
     with open(file_path, "w") as file:
         json.dump(query, file)
 
@@ -118,6 +139,41 @@ def execute_query_pulse(file_path: str, start_date: str, end_date: str) -> str:
         end_date = parser.parse(end_date).strftime(date_format)
         payload["intervals"] = f"{start_date}/{end_date}"
         response = post_request(api_url, headers, payload)
+
+        file_name = os.path.basename(file_path)
+        funnel_type = file_name.split('_')[-1].split('.')[0]
+        print(f"Funnel type: {funnel_type}")
+
+        # Process the response based on funnel type
+        if funnel_type == "close":
+            # For close funnel, keep only keys with "_VS_" string
+            if isinstance(response, list):
+                for i, item in enumerate(response):
+                    if isinstance(item, dict) and "result" in item:
+                        item["result"] = {k: v for k, v in item["result"].items() if "_VS_" in k}
+                    elif isinstance(item, dict):
+                        response[i] = {k: v for k, v in item.items() if "_VS_" in k}
+            elif isinstance(response, dict):
+                if "result" in response:
+                    response["result"] = {k: v for k, v in response["result"].items() if "_VS_" in k}
+                else:
+                    response = {k: v for k, v in response.items() if "_VS_" in k}
+        elif funnel_type == "open":
+            # For open funnel, remove keys with "_VS_" string
+            if isinstance(response, list):
+                for i, item in enumerate(response):
+                    if isinstance(item, dict) and "result" in item:
+                        item["result"] = {k: v for k, v in item["result"].items() if "_VS_" not in k}
+                    elif isinstance(item, dict):
+                        response[i] = {k: v for k, v in item.items() if "_VS_" not in k}
+            elif isinstance(response, dict):
+                if "result" in response:
+                    response["result"] = {k: v for k, v in response["result"].items() if "_VS_" not in k}
+                else:
+                    response = {k: v for k, v in response.items() if "_VS_" not in k}
+
+        print(response)
+
         return response
     except requests.RequestException as e:
         return f"Error querying Funnel Data"
@@ -135,7 +191,7 @@ def fetch_all_segments():
     Fetches all segments
     """
     try:
-        file_path = "data/agents/devrev/tools/Funnel Hub _ Definitions - Segment mapping.csv"
+        file_path = "data/agents/funnel/tools/Funnel Hub _ Definitions - Segment mapping.csv"
         segments = pd.read_csv(file_path)
         segments["Condition"] = segments["Segment Definition"]
         segments.drop(columns=["Segment Definition"], inplace=True)

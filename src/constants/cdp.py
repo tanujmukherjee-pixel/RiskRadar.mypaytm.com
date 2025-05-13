@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 ENABLE_ALL_ACCESS = os.environ.get("ENABLE_ALL_ACCESS", "false").lower() == "true"
 PERMITTED_DATASETS = os.environ.get("PERMITTED_DATASETS", "").split(",")

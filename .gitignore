@@ -47,7 +47,7 @@ Thumbs.db
 *.wmv
 
 *.egg-info
-data/agents/devrev/temp/*
+data/agents/funnel/temp/*
 pi-ai.code-workspace
 *.vscode*
 data/tools/*
