@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 import logging
 from ..repositories.agent import get_repository as get_agent_repository
 from ..repositories.noop_agent import get_repository as get_noop_agent_repository
+from ..utils.s3 import fetch_docs_from_s3
 
 logger = logging.getLogger(__name__)
 

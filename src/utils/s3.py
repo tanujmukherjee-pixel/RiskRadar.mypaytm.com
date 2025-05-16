@@ -1,10 +1,11 @@
 import boto3
 import os
-
+import logging
 S3_PROFILE =  os.getenv('S3_PROFILE', "PaiRiskDataScienceDevOps")
 ENABLE_PROFILE = os.getenv('ENABLE_PROFILE', 'false').lower() == 'true'
 CST_EVAL_BUCKET = os.getenv('CST_EVAL_BUCKET', "agency-stg")
 
+logger = logging.getLogger(__name__)
 
 async def fetch_docs_from_s3(agent_name: str, output_path: str):
     """Fetch docs from s3 and save to disk."""

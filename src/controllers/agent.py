@@ -17,7 +17,7 @@ async def create_agent(
     
     agent_request = AgentRequest(**json.loads(agent_request))
     prompts = _validate_zip_file(file)
-    agent = agent_service.create_agent(agent_request, prompts)
+    agent = await agent_service.create_agent(agent_request, prompts)
 
     return {"message": f"Agent {agent.agent_name} created successfully"}
 
@@ -72,7 +72,7 @@ async def update_agent(
     
     agent_request = AgentRequest(**json.loads(agent_request))
     prompts = _validate_zip_file(file)
-    agent = agent_service.create_agent(agent_request, prompts)
+    agent = await agent_service.create_agent(agent_request, prompts)
     return {"message": f"Agent {agent.agent_name} updated successfully"}
 
 
