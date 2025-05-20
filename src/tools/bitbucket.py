@@ -1,5 +1,5 @@
 from typing import List, Dict
-from src.utils.api import get_request
+from src.utils.api import async_get_request
 import base64
 username="Anshul1Chauhan"
 app_password="REDACTED_ATLASSIAN_TOKEN"
@@ -11,35 +11,35 @@ def _create_auth_header():
         "Authorization": f"Basic {base64.b64encode(f'{username}:{app_password}'.encode()).decode()}"
     }
 
-def get_workspace_info() -> Dict:
+async def get_workspace_info() -> Dict:
     """Get workspace information"""
     url = f"{base_url}/workspaces/{workspace}"
     try:
-        response = get_request(url, _create_auth_header())
+        response = await async_get_request(url, _create_auth_header())
         return response
     except Exception as e:
         return {"error": str(e)}
 
 
-def get_repository_info(repo_slug: str) -> Dict:
+async def get_repository_info(repo_slug: str) -> Dict:
     """Get repository information"""
     url = f"{base_url}/repositories/{workspace}/{repo_slug}"
     try:
-        response = get_request(url, _create_auth_header())
+        response = await async_get_request(url, _create_auth_header())
         return response
     except Exception as e:
         return {"error": str(e)}
 
-def get_all_branches(repo_slug: str) -> List[Dict]:
+async def get_all_branches(repo_slug: str) -> List[Dict]:
     """Get all branches from a repository"""
     url = f"{base_url}/repositories/{workspace}/{repo_slug}/refs/branches"
     try:
-        response = get_request(url, _create_auth_header())
+        response = await async_get_request(url, _create_auth_header())
         return response
     except Exception as e:
         return {"error": str(e)}
 
-def get_commits(repo_slug: str, branch: str = "main") -> List[Dict]:
+async def get_commits(repo_slug: str, branch: str = "main") -> List[Dict]:
     """Get all commits from a branch"""
     commits = []
     url = f"{base_url}/repositories/{workspace}/{repo_slug}/commits/{branch}"
@@ -48,7 +48,7 @@ def get_commits(repo_slug: str, branch: str = "main") -> List[Dict]:
         try:
             headers = _create_auth_header()
             headers["Content-Type"] = "application/json"
-            response = get_request(url, headers)
+            response = await async_get_request(url, headers)
             commits.extend(response.get("values", []))
             url = response.get("next")
         except Exception as e:
@@ -56,9 +56,9 @@ def get_commits(repo_slug: str, branch: str = "main") -> List[Dict]:
     
     return commits
 
-def analyze_contributions(repo_slug: str, branch: str) -> Dict:
+async def analyze_contributions(repo_slug: str, branch: str) -> Dict:
     """Analyze contributor statistics"""
-    commits = get_commits(repo_slug, branch)
+    commits = await get_commits(repo_slug, branch)
     stats = {
         "total_commits": len(commits),
         "contributors": {},
@@ -93,19 +93,19 @@ def analyze_contributions(repo_slug: str, branch: str) -> Dict:
     return stats
 
 
-def get_all_repositories(page: int = 1) -> List[Dict]:
+async def get_all_repositories(page: int = 1) -> List[Dict]:
     """Get all repositories"""
     url = f"{base_url}/repositories/{workspace}?page={page}&sort=-updated_on"
     try:
-        response = get_request(url, _create_auth_header())
+        response = await async_get_request(url, _create_auth_header())
         return response
     except Exception as e:
         return {"error": str(e)}
     
-def call_bitbucket_api(url: str) -> Dict:
+async def call_bitbucket_api(url: str) -> Dict:
     """Call the Bitbucket API"""
     try:
-        response = get_request(url, _create_auth_header())
+        response = await async_get_request(url, _create_auth_header())
         return response
     except Exception as e:
         return {"error": str(e)}

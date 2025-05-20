@@ -8,15 +8,15 @@ import pandas as pd
 from trino.dbapi import connect
 from ..constants.cdp import PERMITTED_DATABASES, PERMITTED_TABLES
 
-def fetch_table_schema(table_name: str):
+async def fetch_table_schema(table_name: str):
     """
     Fetches the schema of a table from the starburst database
     """
     query = f"DESCRIBE {table_name}"
-    return execute_query(query)
+    return await execute_query(query)
 
 
-def execute_query(query: str):
+async def execute_query(query: str):
     """
     Executes a query on the starburst database
     """
@@ -25,13 +25,13 @@ def execute_query(query: str):
     #     raise ValueError("Fetch dataset first and then use fetch_schema_from_dataset_id_tool to get the schema details")
 
 
-    connection = _connect()
+    connection = await _connect()
     cursor = connection.cursor()
     cursor.execute(query)
     return cursor.fetchall()
 
 
-def _connect() -> None:
+async def _connect() -> None:
     """Establish a connection to the Trino server."""
     connection = connect(
         host=os.getenv('STARBURST_HOST', 'https://cdp-dashboarding.platform.mypaytm.com'),
@@ -42,7 +42,7 @@ def _connect() -> None:
     )
     return connection
 
-def fetch_permitted_schemas() -> List[str]:
+async def fetch_permitted_schemas() -> List[str]:
     """
     Fetches the list of permitted schemas from the starburst database
     """
@@ -51,13 +51,13 @@ def fetch_permitted_schemas() -> List[str]:
     """
 
     permitted_schemas = []
-    for schema in execute_query(query):
+    for schema in await execute_query(query):
         if schema[0] in PERMITTED_DATABASES:
             permitted_schemas.append(schema[0])
     return permitted_schemas
 
 
-def fetch_permitted_tables(schema: str) -> List[str]:
+async def fetch_permitted_tables(schema: str) -> List[str]:
     """
     Fetches the list of permitted tables from the starburst database
     """
@@ -65,7 +65,7 @@ def fetch_permitted_tables(schema: str) -> List[str]:
     SHOW TABLES IN {schema}
     """ 
     permitted_tables = []
-    for table in execute_query(query):
+    for table in await execute_query(query):
         if table[0] in PERMITTED_TABLES:
             permitted_tables.append(table[0])
     return permitted_tables

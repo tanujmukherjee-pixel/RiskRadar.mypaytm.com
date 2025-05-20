@@ -3,7 +3,7 @@ from ..constants.database import ELASTICSEARCH_HOST
 
 from datetime import datetime, timedelta
 
-def fetch_logs_timerange(id, start_time, end_time):
+async def fetch_logs_timerange(id, start_time, end_time):
     """
     Fetch logs from Kibana (Elasticsearch) based on an id and start and end time.
     """
@@ -43,7 +43,7 @@ def fetch_logs_timerange(id, start_time, end_time):
     return []
 
 
-def fetch_all_logs(delta_time=3600):
+async def fetch_all_logs(delta_time=3600):
     """
     Fetch all logs from Kibana (Elasticsearch) based on delta time in seconds.
     """

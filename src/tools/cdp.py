@@ -1,12 +1,12 @@
 import pandas as pd
-from ..utils.api import get_request
+from ..utils.api import async_get_request
 from typing import List
 import os
 from ..constants.cdp import PERMITTED_DATASETS
 session_map = {}
 
 
-def fetch_all_datasets(regex: str):
+async def fetch_all_datasets(regex: str):
     """
     Fetches all the relevant datasets from the cdp based on regex.
     """
@@ -16,7 +16,7 @@ def fetch_all_datasets(regex: str):
 
     for keyword in keywords:
         url = os.environ.get("DATASET_SERVICE_HOST", "http://dataset-service-prod.mm7pbnhhzr.ap-south-1.elasticbeanstalk.com") + "/v2/datasets"
-        response = get_request(url, None)
+        response = await async_get_request(url, None)
         df = pd.DataFrame(response)
         # Filter for active status and select required columns
         df = df[df['status'] == 'ACTIVE'][['id', 'name', 'description']]
@@ -33,17 +33,17 @@ def fetch_all_datasets(regex: str):
     
     return results
 
-def fetch_schema_name_from_dataset_id(dataset_id: str):
+async def fetch_schema_name_from_dataset_id(dataset_id: str):
     """
     Fetches the schema from the dataset id fetched from fetch_all_datasets
     """
     base_url = os.environ.get("DATASET_SERVICE_HOST", "http://dataset-service-prod.mm7pbnhhzr.ap-south-1.elasticbeanstalk.com") + f"/v2/datasets/"
     url = base_url + dataset_id
-    response = get_request(url, None)
+    response = await async_get_request(url, None)
 
     if "fields" not in response or response["fields"] is None:
         url = base_url + str(response["id"])
-        response = get_request(url, None)
+        response = await async_get_request(url, None)
     
     destinations = response["destinations"]
     fields = response["fields"]

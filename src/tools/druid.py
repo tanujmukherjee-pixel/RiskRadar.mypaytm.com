@@ -14,7 +14,7 @@ load_dotenv()
 pulse_cookie = os.getenv("PULSE_COOKIE")
 imply_cookie = os.getenv("IMPLY_COOKIE")
 
-def get_all_funnels():
+async def get_all_funnels():
     """
     Fetches all the funnels from the druid
     """
@@ -35,13 +35,14 @@ def get_all_funnels():
             "goal": item["goal"],
             "vertical_name": item["vertical_name"],
             "product_name": item["product_name"],
-            "id": item["id"]
+            "id": item["id"],
+            "is_historical": item["is_historical"]
         }
         for item in funnel_reponse["result"]
     ]
     return result
 
-def fetch_query(funnel_id, funnel_name, session_id, segment_query = None, funnel_type = None):
+async def fetch_query(funnel_id, funnel_name, session_id, segment_query = None, funnel_type = None):
     """
     Fetches the file path for the query for the funnel for a given segment and if not provided any segment, fetches query corresponding to the funnel across all segments
     Available funnel types are None,"close" and "open"
@@ -95,7 +96,7 @@ def fetch_query(funnel_id, funnel_name, session_id, segment_query = None, funnel
     print(file_path)
     return file_path
 
-def add_segment_query(base_query, segment_query):
+async def add_segment_query(base_query, segment_query):
     """
     Adds the segment query to the base query
     """
@@ -110,7 +111,7 @@ def add_segment_query(base_query, segment_query):
 
     return base_query
 
-def execute_query_pulse(file_path: str, start_date: str, end_date: str) -> str:
+async def execute_query_pulse(file_path: str, start_date: str, end_date: str) -> str:
     """
     Takes file path as input and returns result of it after querrying pulse
     Data returned corresponds to the user visits to the app for the query
@@ -178,7 +179,7 @@ def execute_query_pulse(file_path: str, start_date: str, end_date: str) -> str:
     except requests.RequestException as e:
         return f"Error querying Funnel Data"
     
-def get_segment_query(segment: str, vertical: str, product: str):
+async def get_segment_query(segment: str, vertical: str, product: str):
     """
     Fetches the query for the segment
     """
@@ -186,7 +187,7 @@ def get_segment_query(segment: str, vertical: str, product: str):
     segment_query = segments[segments["Segment Name"] == segment]["Condition"].values[0]
     return segment_query
 
-def fetch_all_segments():
+async def fetch_all_segments():
     """
     Fetches all segments
     """
@@ -200,7 +201,7 @@ def fetch_all_segments():
         print(e)
         return f"Error fetching segments: {str(e)}"
     
-def fetch_all_applicable_segments(vertical: str, product: str):
+async def fetch_all_applicable_segments(vertical: str, product: str):
     """
     Fetches all applicable segments for the query
     """
@@ -210,7 +211,7 @@ def fetch_all_applicable_segments(vertical: str, product: str):
     return filtered_segments + common_segments
 
 
-def fetch_all_insights():
+async def fetch_all_insights():
     """
     Fetches all insights from the cdp
     """
@@ -227,16 +228,17 @@ def fetch_all_insights():
     response = get_request(url, headers)
     result = response["result"]
     df = pd.DataFrame(result)
-    columns_to_keep = ['id', 'name', 'filter', 'granularity', 'segments', 'slices', 'time_range']
+    columns_to_keep = ['id', 'name', 'filter', 'granularity', 'segments', 'slices', 'time_range', 'is_historical']
     df = df[df.columns.intersection(columns_to_keep)]
     return df.to_dict(orient="records")
 
-def fetch_insight_details(insight_id: str, segment_id: str, time_range: str = "Last 30 days", column_filters: List[str] = [], granularity_value: str = "all"):
+async def fetch_insight_details(insight_id: str, segment_id: str, is_historical: bool = False, time_range: str = "Last 30 days", column_filters: List[str] = [], granularity_value: str = "all"):
     """
     Fetches details of an insight from the cdp based on insight id
     default time range is last 30 days
     default column filters are empty
     default granularity is all
+    default is_historical is false
     """
     if not pulse_cookie:
         raise ValueError("PULSE_COOKIE environment variable is not set")
@@ -245,10 +247,43 @@ def fetch_insight_details(insight_id: str, segment_id: str, time_range: str = "L
             "Cookie": pulse_cookie,
             "Content-Type": "application/json",
         }
-    url = os.environ.get("PULSE_SERVICE_HOST", "https://pulse.bi.mypaytm.com") + f"/api/v1/chart/{insight_id}/data/?segment={segment_id}&time_range={time_range}&column_filters={column_filters}&insight=true&granularity={granularity_value}&isNewInsight=false&force=true"
+    if is_historical:
+        start_date,end_date = await fetch_start_end_date(time_range)
+        url = os.environ.get("PULSE_HISTORICAL_SERVICE_HOST", "https://pulse-historical-service.internal.production.cdst.cdp.mypaytm.com") + f"/v1/insight/{insight_id}?startDate={start_date}&endDate={end_date}&segmentId={segment_id}"
+    else:
+        url = os.environ.get("PULSE_SERVICE_HOST", "https://pulse.bi.mypaytm.com") + f"/api/v1/chart/{insight_id}/data/?segment={segment_id}&time_range={time_range}&column_filters={column_filters}&insight=true&granularity={granularity_value}&isNewInsight=false&force=true"
     response = get_request(url, headers)
     response = response["result"]
     df = pd.DataFrame(response)
     columns_to_keep = ['data_json']
     df = df[df.columns.intersection(columns_to_keep)]
     return df.to_dict(orient="records")
+
+async def fetch_start_end_date(time_range: str):
+    """
+    Fetches the start and end date for the time range
+    """
+    """
+    Fetches the start and end date for a given time range by making an API call
+    to the Pulse service.
+    
+    Args:
+        time_range (str): The time range string (e.g., 'Last 30 days', 'Last 121 days')
+        
+    Returns:
+        dict: A dictionary containing the start and end dates for the specified time range
+    """
+    if not pulse_cookie:
+        raise ValueError("PULSE_COOKIE environment variable is not set")
+
+    headers = {
+        "Cookie": pulse_cookie,
+        "Content-Type": "application/json",
+    }
+    
+    encoded_time_range = urllib.parse.quote(f"'{time_range}'")
+    url = f"{os.environ.get('PULSE_SERVICE_HOST', 'https://pulse.bi.mypaytm.com')}/api/v1/time_range/?q={encoded_time_range}"
+    
+    response = get_request(url, headers)
+    response = response["result"]
+    return (response["since"], response["until"])

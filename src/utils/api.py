@@ -1,4 +1,5 @@
 import requests
+import httpx
 
 import ssl
 
@@ -20,3 +21,13 @@ def post_request(url: str, headers: dict, payload: dict) -> dict:
     response = requests.post(url, headers=headers, json=payload, verify=False)
     response.raise_for_status()
     return response.json()
+
+
+async def async_get_request(url: str, headers: dict) -> dict:
+    """
+    Sends an async GET request to the given URL with the given headers.
+    """
+    async with httpx.AsyncClient(verify=False) as client:
+        response = await client.get(url, headers=headers)
+        response.raise_for_status()
+        return response.json()

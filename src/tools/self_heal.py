@@ -6,7 +6,7 @@ import boto3
 import time
 from kubernetes import client, config
 
-def get_dns_hostname(instance_name: str) -> str:
+async def get_dns_hostname(instance_name: str) -> str:
     # Convert node name to internal DNS hostname format if necessary
     if not (instance_name.startswith("ip-") and instance_name.endswith(".compute.internal")):
         if ":" in instance_name:
@@ -22,7 +22,7 @@ def get_dns_hostname(instance_name: str) -> str:
             return f"Invalid instance name format: {instance_name}"
     return instance_name
 
-def install_awscli():
+async def install_awscli():
     print("Installing AWS CLI")
 
     try:
@@ -114,7 +114,7 @@ def install_awscli():
         logging.error(f"Unexpected error during AWS CLI or Session Manager Plugin installation: {str(e)}")
         raise
 
-def get_node_instance_id(private_dns_name):
+async def get_node_instance_id(private_dns_name):
     """
     Get the instance ID of a node using the Private IP DNS name.
 
@@ -147,7 +147,7 @@ def get_node_instance_id(private_dns_name):
         logging.error(f"Error getting instance ID for node {private_dns_name}: {str(e)}")
         raise
 
-def clean_up_node(instance_id):
+async def clean_up_node(instance_id):
     logging.info(f"Starting cleanup for instance ID: {instance_id}")
 
     # Create the AWS command to send the shell script
@@ -219,7 +219,7 @@ def clean_up_node(instance_id):
         logging.error(f"Unexpected error: {str(e)}")
         raise
 
-def get_node(node_name: str):
+async def get_node(node_name: str):
     try:
         config.load_incluster_config()
     except config.ConfigException:
@@ -235,8 +235,8 @@ def get_node(node_name: str):
 
     return node
 
-def drain_node(node_name: str):
-    node = get_node(node_name)
+async def drain_node(node_name: str):
+    node = await get_node(node_name)
     v1 = client.CoreV1Api()
 
     try:
@@ -270,8 +270,8 @@ def drain_node(node_name: str):
         logging.error(error_message)
         raise error_message
 
-def cordon_node(node_name: str):
-    node = get_node(node_name)
+async def cordon_node(node_name: str):
+    node = await get_node(node_name)
     v1 = client.CoreV1Api()
     try:
         v1.patch_node(node.metadata.name, {"spec": {"unschedulable": True}})
@@ -281,8 +281,8 @@ def cordon_node(node_name: str):
         logging.error(error_message)
         raise error_message
 
-def uncordon_node(node_name: str):
-    node = get_node(node_name)
+async def uncordon_node(node_name: str):
+    node = await get_node(node_name)
     v1 = client.CoreV1Api()
     try:
         v1.patch_node(node.metadata.name, {"spec": {"unschedulable": False}})

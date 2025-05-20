@@ -18,3 +18,16 @@ CREATE TABLE IF NOT EXISTS tools (
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS multi_agents (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT,
+    agents JSONB,
+    initial_agent VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+-- Insert a default multi-agent configuration
+INSERT INTO multi_agents (name, description, agents, initial_agent) 
+VALUES ('default', 'Default multi-agent configuration', '[{"name": "funnel", "condition" : "always" }]'::jsonb, 'funnel');

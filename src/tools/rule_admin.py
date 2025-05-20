@@ -1,4 +1,4 @@
-from ..utils.api import get_request
+from ..utils.api import async_get_request
 from ..constants.rule_admin import RULE_ADMIN_URL, RULE_ADMIN_TOKEN
 from ..utils.auth import generate_token_for_user_email
 from typing import Optional
@@ -6,7 +6,7 @@ from ..constants.kibana import REQUEST_PAYLOAD_FIELDS, REQUEST_METADATA_FIELDS, 
 from .kibana import fetch_logs_timerange
 from datetime import datetime, timedelta
 
-def fetch_rule_info(rule_name: str, rule_version: str, source: str):
+async def fetch_rule_info(rule_name: str, rule_version: str, source: str):
     """
     Fetch rule info from the rule admin service using the rule name, rule version and source.
     """
@@ -22,16 +22,16 @@ def fetch_rule_info(rule_name: str, rule_version: str, source: str):
                 "Authorization": f"Bearer {token['access_token']}"
             }
 
-            response = get_request(url, headers=headers)
-            if response.status_code == 200:
-                return response.json()
+            response = await async_get_request(url, headers=headers)
+            if response.get('status_code', 200) == 200:
+                return response
         except Exception as e:
             continue
 
     return None
 
 
-def generate_index_filter(id_key: str, id_value: str):
+async def generate_index_filter(id_key: str, id_value: str):
     """
     Generate an index filter for a given id key and id value.
     """
@@ -43,7 +43,7 @@ def generate_index_filter(id_key: str, id_value: str):
     else:
         return f"{id_key}:{id_value}"
 
-def calculate_cooloff_period(id_key: str, id_value: str, source: str, time_period: str, amount_limit: Optional[int] = None, count_limit: Optional[int] = None):
+async def calculate_cooloff_period(id_key: str, id_value: str, source: str, time_period: str, amount_limit: Optional[int] = None, count_limit: Optional[int] = None):
     """
     Calculate the cooloff period for a given id key, id value, source, time period in seconds and either amount limit or count limit.
     """
@@ -54,12 +54,12 @@ def calculate_cooloff_period(id_key: str, id_value: str, source: str, time_perio
     if amount_limit is not None and count_limit is not None:
         raise ValueError("Only one of amount limit or count limit can be provided")
     
-    index_filter = generate_index_filter(id_key, id_value)
+    index_filter = await generate_index_filter(id_key, id_value)
 
     start_time = datetime.utcnow() - timedelta(seconds=int(time_period))
     end_time = datetime.utcnow()
 
-    logs = fetch_logs_timerange(index_filter, start_time.strftime('%Y-%m-%d'), end_time.strftime('%Y-%m-%d'))
+    logs = await fetch_logs_timerange(index_filter, start_time.strftime('%Y-%m-%d'), end_time.strftime('%Y-%m-%d'))
 
     total_amount = 0
     transaction_count = 0

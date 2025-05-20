@@ -2,9 +2,9 @@ import requests
 from datetime import datetime
 from dateutil import parser
 import pandas as pd
-from ..utils.api import get_request
+from ..utils.api import async_get_request
 
-def execute_query_mongo(funnel_id: str, start_date: str, end_date: str) -> str:
+async def execute_query_mongo(funnel_id: str, start_date: str, end_date: str) -> str:
     """
     Takes funnel id as input and returns result of it after querrying mongo
     Data returned corresponds to the user visits to the app for the query
@@ -26,7 +26,7 @@ def execute_query_mongo(funnel_id: str, start_date: str, end_date: str) -> str:
         end_date = parser.parse(end_date).strftime(date_format)
         api_url = f"https://pulse-historical-service.internal.production.cdst.cdp.mypaytm.com/v1/funnel/{funnel_id}?startDate={start_date}&endDate={end_date}&granularity=P1D"
 
-        response = get_request(api_url, headers)
+        response = await async_get_request(api_url, headers)
         return response
     except requests.RequestException as e:
         return f"Error querying Funnel Data: {str(e)}"

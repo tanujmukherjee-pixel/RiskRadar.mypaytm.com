@@ -1,6 +1,7 @@
 from .services.tools import tools_service
 from .services.agent import agent_service
 from .services.model import model_service
+from .services.multi_agents import multi_agents_service
 from .services.docs import fetch_all_docs
 import asyncio
 import logging
@@ -30,6 +31,8 @@ async def bootstrap_async():
         tools_service.bootstrap(),
         agent_service.bootstrap()
     )
+
+    await multi_agents_service.bootstrap()
     
     # Now start loading models with prioritization
     logger.info("Starting model initialization...")

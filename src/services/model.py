@@ -309,7 +309,7 @@ class ModelService:
             
             logger.info(f"Model '{model_id}' deleted")
     
-    async def add_model(self, model_id: str, model: BaseAgent):
+    async def add_model(self, model_id: str, model: Any):
         """Add a new model with proper synchronization."""
         async with self._models_lock:
             # Store the model directly as loaded
