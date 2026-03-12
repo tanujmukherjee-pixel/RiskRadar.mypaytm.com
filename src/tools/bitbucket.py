@@ -1,9 +1,10 @@
+import os
 from typing import List, Dict
 from src.utils.api import async_get_request
 import base64
-username="Anshul1Chauhan"
-app_password="REDACTED_ATLASSIAN_TOKEN"
-workspace="paytmteam"
+username = os.environ["BITBUCKET_USERNAME"]
+app_password = os.environ["BITBUCKET_APP_PASSWORD"]
+workspace = os.environ.get("BITBUCKET_WORKSPACE", "paytmteam")
 base_url: str = "https://api.bitbucket.org/2.0"
 
 def _create_auth_header():

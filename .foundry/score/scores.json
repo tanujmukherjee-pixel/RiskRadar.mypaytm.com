@@ -1,0 +1,42 @@
+[
+  {
+    "date": "2026-03-12",
+    "timestamp": "2026-03-12T16-36-27",
+    "score": 73,
+    "pct": 60.6,
+    "grade": "C",
+    "scoring_method": "deterministic",
+    "deep": true,
+    "agent": "claude",
+    "git_ref": "c6c3d08",
+    "git_branch": "tanuj",
+    "foundry_version": "unknown",
+    "prompt_version": "v4.0-parallel",
+    "tasks_generated": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "16",
+      "17"
+    ],
+    "report_dir": "2026-03-12T16-36-27",
+    "scorecard_link": ".foundry/score/reports/2026-03-12T16-36-27/MATURITY_SCORECARD.json",
+    "repo_type": "service",
+    "cost_usd": 0.20718775,
+    "input_tokens": 82349,
+    "output_tokens": 1770,
+    "total_tokens": 84119
+  }
+]

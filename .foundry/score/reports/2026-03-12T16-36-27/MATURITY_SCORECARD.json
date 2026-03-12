@@ -1,0 +1,265 @@
+{
+  "scoring_method": "deterministic",
+  "overall_score": {
+    "total": "73/120",
+    "percentage": 60.6,
+    "grade": "C",
+    "maturity_level": "Moderate",
+    "inconclusive_count": 0
+  },
+  "criteria_scores": {
+    "ai_readiness": {
+      "score": 10,
+      "name": "ai_readiness",
+      "confidence": "high",
+      "findings": [
+        "Found 2 matching file(s) for path pattern",
+        "Found 2 matching file(s) for path pattern"
+      ],
+      "issues": []
+    },
+    "cicd": {
+      "score": 6,
+      "name": "cicd",
+      "confidence": "high",
+      "findings": [
+        "Found 3 pattern match(es) in scanned files",
+        "Found 1 matching file(s) for path pattern"
+      ],
+      "issues": [
+        {
+          "severity": "medium",
+          "issue": "cicd-linting-in-pipeline",
+          "recommendation": "Add a linting step to the CI pipeline",
+          "evaluator": "cicd"
+        },
+        {
+          "severity": "high",
+          "issue": "cicd-tests-in-pipeline",
+          "recommendation": "Add a test execution step to the CI pipeline",
+          "evaluator": "cicd"
+        }
+      ]
+    },
+    "code_quality": {
+      "score": 8,
+      "name": "code_quality",
+      "confidence": "high",
+      "findings": [
+        "Found 1 pattern match(es) in scanned files",
+        "Match count (0) meets threshold requirement",
+        "Found 3 matching file(s) for path pattern",
+        "Found 63 code pattern match(es)"
+      ],
+      "issues": [
+        {
+          "severity": "medium",
+          "issue": "code-quality-has-formatter",
+          "recommendation": "Configure a code formatter in the project",
+          "evaluator": "code_quality"
+        }
+      ]
+    },
+    "dependencies": {
+      "score": 10,
+      "name": "dependencies",
+      "confidence": "high",
+      "findings": [
+        "Config value matches expected condition",
+        "Found 2 matching file(s) for path pattern",
+        "Found 0 code pattern match(es)",
+        "Found 0 pattern match(es) in scanned files",
+        "Found 28 pattern match(es) in scanned files",
+        "Config value matches expected condition"
+      ],
+      "issues": []
+    },
+    "developer_experience": {
+      "score": 10,
+      "name": "developer_experience",
+      "confidence": "high",
+      "findings": [
+        "Found 1 pattern match(es) in scanned files",
+        "Found 1 pattern match(es) in scanned files"
+      ],
+      "issues": []
+    },
+    "documentation": {
+      "score": 8,
+      "name": "documentation",
+      "confidence": "high",
+      "findings": [
+        "Match count (28) meets threshold requirement",
+        "Found 1 matching file(s) for path pattern",
+        "Found 3 matching file(s) for path pattern",
+        "Found 3 pattern match(es) in scanned files"
+      ],
+      "issues": [
+        {
+          "severity": "medium",
+          "issue": "documentation-readme-has-usage",
+          "recommendation": "Add usage examples to README.md",
+          "evaluator": "documentation"
+        }
+      ]
+    },
+    "git_practices": {
+      "score": 5,
+      "name": "git_practices",
+      "confidence": "high",
+      "findings": [
+        "Found 1 matching file(s) for path pattern",
+        "Found 0 matching file(s) for path pattern"
+      ],
+      "issues": [
+        {
+          "severity": "low",
+          "issue": "git-merge-commit-history",
+          "recommendation": "Use merge commits or rebase for cleaner git history",
+          "evaluator": "git_practices"
+        },
+        {
+          "severity": "medium",
+          "issue": "git-recent-activity",
+          "recommendation": "Ensure the repository has recent commit activity",
+          "evaluator": "git_practices"
+        }
+      ]
+    },
+    "infrastructure": {
+      "score": 5,
+      "name": "infrastructure",
+      "confidence": "high",
+      "findings": [
+        "Found 1 matching file(s) for path pattern"
+      ],
+      "issues": [
+        {
+          "severity": "low",
+          "issue": "infra-healthcheck-in-dockerfile",
+          "recommendation": "Add a HEALTHCHECK instruction to the Dockerfile",
+          "evaluator": "infrastructure"
+        }
+      ]
+    },
+    "observability": {
+      "score": 3,
+      "name": "observability",
+      "confidence": "high",
+      "findings": [
+        "Found 22 pattern match(es) in scanned files"
+      ],
+      "issues": [
+        {
+          "severity": "medium",
+          "issue": "observability-has-error-handling",
+          "recommendation": "Add structured error handling with try/catch patterns",
+          "evaluator": "observability"
+        },
+        {
+          "severity": "medium",
+          "issue": "observability-has-health-endpoint",
+          "recommendation": "Add a health check endpoint to the service",
+          "evaluator": "observability"
+        }
+      ]
+    },
+    "release_management": {
+      "score": 4,
+      "name": "release_management",
+      "confidence": "high",
+      "findings": [
+        "Found 1 pattern match(es) in scanned files",
+        "Config value matches expected condition"
+      ],
+      "issues": [
+        {
+          "severity": "low",
+          "issue": "release-consistent-commits",
+          "recommendation": "Use a consistent commit message convention",
+          "evaluator": "release_management"
+        },
+        {
+          "severity": "medium",
+          "issue": "release-recent-tags",
+          "recommendation": "Create git tags for recent releases",
+          "evaluator": "release_management"
+        },
+        {
+          "severity": "medium",
+          "issue": "release-semver-tags",
+          "recommendation": "Use semantic versioning (semver) for release tags",
+          "evaluator": "release_management"
+        }
+      ]
+    },
+    "security": {
+      "score": 2,
+      "name": "security",
+      "confidence": "high",
+      "findings": [
+        "Found 0 code pattern match(es)"
+      ],
+      "issues": [
+        {
+          "severity": "high",
+          "issue": "security-bandit-in-ci",
+          "recommendation": "Add a static security analysis tool (SAST) to the CI pipeline",
+          "evaluator": "security"
+        },
+        {
+          "severity": "high",
+          "issue": "security-has-security-scanner",
+          "recommendation": "Add a security scanning configuration file",
+          "evaluator": "security"
+        },
+        {
+          "severity": "critical",
+          "issue": "security-no-hardcoded-secrets",
+          "recommendation": "Move hardcoded secrets to environment variables",
+          "evaluator": "security"
+        },
+        {
+          "severity": "critical",
+          "issue": "security-no-subprocess-shell",
+          "recommendation": "Use subprocess with shell=False instead of shell=True",
+          "evaluator": "security"
+        }
+      ]
+    },
+    "testing": {
+      "score": 3,
+      "name": "testing",
+      "confidence": "high",
+      "findings": [
+        "Found 1 matching file(s) for path pattern"
+      ],
+      "issues": [
+        {
+          "severity": "medium",
+          "issue": "testing-has-conftest",
+          "recommendation": "Add a shared test configuration file (conftest or equivalent)",
+          "evaluator": "testing"
+        },
+        {
+          "severity": "high",
+          "issue": "testing-has-test-files",
+          "recommendation": "Add test files to the test directory",
+          "evaluator": "testing"
+        },
+        {
+          "severity": "medium",
+          "issue": "testing-minimum-test-count",
+          "recommendation": "Add more tests to reach minimum coverage threshold",
+          "evaluator": "testing"
+        },
+        {
+          "severity": "high",
+          "issue": "testing-uses-assertions",
+          "recommendation": "Add assertions to validate expected behavior in tests",
+          "evaluator": "testing"
+        }
+      ]
+    }
+  }
+}

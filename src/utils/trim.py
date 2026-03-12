@@ -1,9 +1,10 @@
+import os
 from llama_index.llms.openai import OpenAI
 
 def trim_context(context, max_tokens=1000):
     llm = OpenAI(
         model="gpt-4o",
-        api_key="REDACTED_OPENAI_KEY"
+        api_key=os.environ["OPENAI_API_KEY"]
     )
 
     response = llm.chat.completions.create(

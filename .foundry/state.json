@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "meta": {
+    "foundry_version": "1.10.2",
+    "completed_migrations": []
+  },
+  "active_stage": {
+    "current_stage": "",
+    "last_completed_stage": ""
+  },
+  "version_control": {
+    "platform": "bitbucket",
+    "project_org": "paytmteam",
+    "repo_slug": "agency",
+    "branching_strategy": "trunk",
+    "main_branch": "main"
+  },
+  "agent": {
+    "default": "claude",
+    "heavy_model": "auto",
+    "medium_model": "auto",
+    "light_model": "auto",
+    "default_model": "auto"
+  },
+  "telemetry": {
+    "otel_endpoint": ""
+  },
+  "registration": {
+    "team_name": "agency"
+  }
+}

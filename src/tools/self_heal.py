@@ -29,7 +29,7 @@ async def install_awscli():
         # Check if AWS CLI is already installed without using check=True
         aws_exists = shutil.which('aws') is not None
         if aws_exists:
-            aws_version = subprocess.run("aws --version", shell=True, capture_output=True, text=True)
+            aws_version = subprocess.run(["aws", "--version"], capture_output=True, text=True)
             logging.info("AWS CLI is already installed")
             logging.info(f"AWS CLI version: {aws_version.stdout.strip()}")
         else:
@@ -38,10 +38,8 @@ async def install_awscli():
             curl_exists = shutil.which('curl') is not None
             if not curl_exists:
                 logging.info("Installing curl...")
-                subprocess.run(
-                    "apt-get update && apt-get install -y curl",
-                    shell=True, check=True
-                )
+                subprocess.run(["apt-get", "update"], check=True)
+                subprocess.run(["apt-get", "install", "-y", "curl"], check=True)
                 logging.info("Successfully installed curl")
             else:
                 logging.info("curl is already installed")
@@ -50,31 +48,28 @@ async def install_awscli():
             logging.info("Installing AWS CLI...")
             # Change to /tmp directory and perform installation
             os.chdir('/tmp')
-            
+
             # Download AWS CLI
             subprocess.run(
-                "curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip'",
-                shell=True, check=True
+                ["curl", "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip", "-o", "awscliv2.zip"],
+                check=True
             )
-            
+
             # Install unzip
-            subprocess.run(
-                "apt-get install -y unzip",
-                shell=True, check=True
-            )
-            
+            subprocess.run(["apt-get", "install", "-y", "unzip"], check=True)
+
             # Unzip and install AWS CLI
-            subprocess.run("unzip -q awscliv2.zip", shell=True, check=True)
-            subprocess.run("./aws/install", shell=True, check=True)
-            
+            subprocess.run(["unzip", "-q", "awscliv2.zip"], check=True)
+            subprocess.run(["./aws/install"], check=True)
+
             # Clean up
-            subprocess.run("rm -rf awscliv2.zip aws", shell=True, check=True)
+            subprocess.run(["rm", "-rf", "awscliv2.zip", "aws"], check=True)
             logging.info("Successfully installed AWS CLI")
 
         # Check if Session Manager Plugin is already installed without using check=True
         ssm_exists = shutil.which('session-manager-plugin') is not None
         if ssm_exists:
-            ssm_version = subprocess.run("session-manager-plugin --version", shell=True, capture_output=True, text=True)
+            ssm_version = subprocess.run(["session-manager-plugin", "--version"], capture_output=True, text=True)
             logging.info("Session Manager Plugin is already installed")
             logging.info(f"Session Manager Plugin version: {ssm_version.stdout.strip()}")
         else:
@@ -82,22 +77,22 @@ async def install_awscli():
             logging.info("Installing Session Manager Plugin...")
             # Change to /tmp directory and perform installation
             os.chdir('/tmp')
-            
+
             # Download and install Session Manager Plugin
             subprocess.run(
-                "curl 'https://s3.amazonaws.com/session-manager-downloads/plugin/latest/linux_64bit/session-manager-plugin.rpm' -o 'session-manager-plugin.rpm'",
-                shell=True, check=True
+                ["curl", "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/linux_64bit/session-manager-plugin.rpm", "-o", "session-manager-plugin.rpm"],
+                check=True
             )
-            subprocess.run("sudo rpm -i session-manager-plugin.rpm", shell=True, check=True)
-            
+            subprocess.run(["sudo", "rpm", "-i", "session-manager-plugin.rpm"], check=True)
+
             # Clean up
-            subprocess.run("rm -f session-manager-plugin.rpm", shell=True, check=True)
+            subprocess.run(["rm", "-f", "session-manager-plugin.rpm"], check=True)
             logging.info("Successfully installed Session Manager Plugin")
 
         # Final verification
-        aws_final = subprocess.run("aws --version", shell=True, capture_output=True, text=True)
-        ssm_final = subprocess.run("session-manager-plugin --version", shell=True, capture_output=True, text=True)
-        
+        aws_final = subprocess.run(["aws", "--version"], capture_output=True, text=True)
+        ssm_final = subprocess.run(["session-manager-plugin", "--version"], capture_output=True, text=True)
+
         logging.info(f"Final AWS CLI version: {aws_final.stdout.strip()}")
         logging.info(f"Final Session Manager Plugin version: {ssm_final.stdout.strip()}")
 
@@ -150,71 +145,59 @@ async def get_node_instance_id(private_dns_name):
 async def clean_up_node(instance_id):
     logging.info(f"Starting cleanup for instance ID: {instance_id}")
 
-    # Create the AWS command to send the shell script
-    send_command = f'''aws ssm send-command \
-        --instance-ids "{instance_id}" \
-        --document-name "AWS-RunShellScript" \
-        --parameters '{{"commands":[
-            "echo \\"Clean Up Yum Cache (Package Manager Cache)\\"",
-            "sudo yum clean all",
-            "sudo rm -rf /var/cache/yum/*",
-            "echo \\"Truncating Log Files, instead of deleting\\"",
-            "sudo find /var/log/ -type f -name \\"*.log\\" -exec truncate -s 0 {{}} \\\;",
-            "echo \\"Cleaning up journalctl\\"",
-            "sudo journalctl --vacuum-time=1d",
-            "echo \\"Cleaning up old containerd metadata\\"",
-            "sudo rm -rf /var/lib/containerd/tmp/*",
-            "echo \\"List information about block devices\\"",
-            "lsblk"
-        ]}}' \
-        --region ap-south-1 \
-        --output text \
-        --query "Command.CommandId"'''
+    ssm_client = boto3.client('ssm', region_name='ap-south-1')
 
     try:
-        # Execute send-command and get the command ID
-        logging.debug(f"Executing command: {send_command}")
-        result = subprocess.run(send_command, shell=True, check=True, capture_output=True, text=True)
-        command_id = result.stdout.strip()
-        
+        response = ssm_client.send_command(
+            InstanceIds=[instance_id],
+            DocumentName="AWS-RunShellScript",
+            Parameters={
+                "commands": [
+                    "echo \"Clean Up Yum Cache (Package Manager Cache)\"",
+                    "sudo yum clean all",
+                    "sudo rm -rf /var/cache/yum/*",
+                    "echo \"Truncating Log Files, instead of deleting\"",
+                    "sudo find /var/log/ -type f -name \"*.log\" -exec truncate -s 0 {} ;",
+                    "echo \"Cleaning up journalctl\"",
+                    "sudo journalctl --vacuum-time=1d",
+                    "echo \"Cleaning up old containerd metadata\"",
+                    "sudo rm -rf /var/lib/containerd/tmp/*",
+                    "echo \"List information about block devices\"",
+                    "lsblk",
+                ]
+            },
+        )
+        command_id = response['Command']['CommandId']
+
         if not command_id:
             raise Exception("Failed to get command ID from send-command")
-        
+
         logging.info(f"Successfully sent cleanup command. Command ID: {command_id}")
-        
+
         # Wait for command to complete and get output
         max_retries = 10
         retry_count = 0
         while retry_count < max_retries:
-            get_output_command = f'''aws ssm list-command-invocations \
-                --command-id {command_id} \
-                --details \
-                --region ap-south-1 \
-                --query "CommandInvocations[0].CommandPlugins[0].Output" \
-                --output text'''
-                
-            output_result = subprocess.run(get_output_command, shell=True, check=True, capture_output=True, text=True)
-            output = output_result.stdout.strip()
-            
-            if output and output != "None":
-                logging.info("Cleanup operation results:")
-                logging.info("=" * 50)
-                logging.info(output)
-                logging.info("=" * 50)
-                return output
-                
+            result = ssm_client.list_command_invocations(
+                CommandId=command_id,
+                Details=True,
+            )
+            invocations = result.get('CommandInvocations', [])
+            if invocations and invocations[0].get('CommandPlugins'):
+                output = invocations[0]['CommandPlugins'][0].get('Output', '').strip()
+                if output and output != "None":
+                    logging.info("Cleanup operation results:")
+                    logging.info("=" * 50)
+                    logging.info(output)
+                    logging.info("=" * 50)
+                    return output
+
             logging.info(f"Waiting for cleanup command completion. Attempt {retry_count + 1}/{max_retries}")
             time.sleep(5)
             retry_count += 1
-            
+
         raise Exception(f"Command did not complete after {max_retries} retries")
-        
-    except subprocess.CalledProcessError as e:
-        logging.error(f"Error executing command: {str(e)}")
-        logging.error(f"Command stdout: {e.stdout if hasattr(e, 'stdout') else 'No stdout available'}")
-        logging.error(f"Command stderr: {e.stderr if hasattr(e, 'stderr') else 'No stderr available'}")
-        logging.error(f"Return code: {e.returncode}")
-        raise
+
     except Exception as e:
         logging.error(f"Unexpected error: {str(e)}")
         raise
@@ -243,7 +226,7 @@ async def drain_node(node_name: str):
         pods = v1.list_pod_for_all_namespaces(field_selector=f"spec.nodeName={node.metadata.name}").items
         if not pods:
             return f"Node {node.metadata.name} is already drained (no pods scheduled)."
-            
+
         # Check for rule engine pods
         elif any(pod.metadata.name.startswith("pi-rule-engine-") for pod in pods):
             # Uncordon the node
@@ -291,5 +274,3 @@ async def uncordon_node(node_name: str):
         error_message = f"Failed to uncordon node {node.metadata.name}: {e}"
         logging.error(error_message)
         raise error_message
-
-

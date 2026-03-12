@@ -57,3 +57,11 @@ data/tools/*
 
 *.svg
 *.prof
+
+# foundry
+.foundry/.base/
+.foundry/.metadata
+.foundry/logs/
+.foundry/.flow-session.json
+.foundry/score/eval/
+.claude/settings.local.json

@@ -1,0 +1,88 @@
+<h1>Maturity Report</h1>
+<p><strong>Score</strong>: 73/120
+<strong>Percentage</strong>: 60.6%
+<strong>Grade</strong>: C
+<strong>Maturity Level</strong>: Moderate</p>
+<h2>Score Breakdown</h2>
+<p>| Criterion | Score | Confidence |
+|-----------|-------|------------|
+| ai_readiness | 10/10 | high |
+| cicd | 6/10 | high |
+| code_quality | 8/10 | high |
+| dependencies | 10/10 | high |
+| developer_experience | 10/10 | high |
+| documentation | 8/10 | high |
+| git_practices | 5/10 | high |
+| infrastructure | 5/10 | high |
+| observability | 3/10 | high |
+| release_management | 4/10 | high |
+| security | 2/10 | high |
+| testing | 3/10 | high |</p>
+<h2>Issues</h2>
+<h3>cicd</h3>
+<ul>
+<li><strong>[medium]</strong> cicd-linting-in-pipeline</li>
+<li>Recommendation: Add a linting step to the CI pipeline</li>
+<li><strong>[high]</strong> cicd-tests-in-pipeline</li>
+<li>Recommendation: Add a test execution step to the CI pipeline</li>
+</ul>
+<h3>code_quality</h3>
+<ul>
+<li><strong>[medium]</strong> code-quality-has-formatter</li>
+<li>Recommendation: Configure a code formatter in the project</li>
+</ul>
+<h3>documentation</h3>
+<ul>
+<li><strong>[medium]</strong> documentation-readme-has-usage</li>
+<li>Recommendation: Add usage examples to README.md</li>
+</ul>
+<h3>git_practices</h3>
+<ul>
+<li><strong>[low]</strong> git-merge-commit-history</li>
+<li>Recommendation: Use merge commits or rebase for cleaner git history</li>
+<li><strong>[medium]</strong> git-recent-activity</li>
+<li>Recommendation: Ensure the repository has recent commit activity</li>
+</ul>
+<h3>infrastructure</h3>
+<ul>
+<li><strong>[low]</strong> infra-healthcheck-in-dockerfile</li>
+<li>Recommendation: Add a HEALTHCHECK instruction to the Dockerfile</li>
+</ul>
+<h3>observability</h3>
+<ul>
+<li><strong>[medium]</strong> observability-has-error-handling</li>
+<li>Recommendation: Add structured error handling with try/catch patterns</li>
+<li><strong>[medium]</strong> observability-has-health-endpoint</li>
+<li>Recommendation: Add a health check endpoint to the service</li>
+</ul>
+<h3>release_management</h3>
+<ul>
+<li><strong>[low]</strong> release-consistent-commits</li>
+<li>Recommendation: Use a consistent commit message convention</li>
+<li><strong>[medium]</strong> release-recent-tags</li>
+<li>Recommendation: Create git tags for recent releases</li>
+<li><strong>[medium]</strong> release-semver-tags</li>
+<li>Recommendation: Use semantic versioning (semver) for release tags</li>
+</ul>
+<h3>security</h3>
+<ul>
+<li><strong>[high]</strong> security-bandit-in-ci</li>
+<li>Recommendation: Add a static security analysis tool (SAST) to the CI pipeline</li>
+<li><strong>[high]</strong> security-has-security-scanner</li>
+<li>Recommendation: Add a security scanning configuration file</li>
+<li><strong>[critical]</strong> security-no-hardcoded-secrets</li>
+<li>Recommendation: Move hardcoded secrets to environment variables</li>
+<li><strong>[critical]</strong> security-no-subprocess-shell</li>
+<li>Recommendation: Use subprocess with shell=False instead of shell=True</li>
+</ul>
+<h3>testing</h3>
+<ul>
+<li><strong>[medium]</strong> testing-has-conftest</li>
+<li>Recommendation: Add a shared test configuration file (conftest or equivalent)</li>
+<li><strong>[high]</strong> testing-has-test-files</li>
+<li>Recommendation: Add test files to the test directory</li>
+<li><strong>[medium]</strong> testing-minimum-test-count</li>
+<li>Recommendation: Add more tests to reach minimum coverage threshold</li>
+<li><strong>[high]</strong> testing-uses-assertions</li>
+<li>Recommendation: Add assertions to validate expected behavior in tests</li>
+</ul>
