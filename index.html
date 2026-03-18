@@ -357,19 +357,31 @@ TASK 1 - LINE OF BUSINESS: Identify the business type, industry, products/servic
 
 TASK 2 - MCC ASSIGNMENT: Assign the best NPCI UPI MCC and ISO 18245 Card MCC codes.
 
+TRANSPORT MCCs — CRITICAL DISTINCTIONS (most common source of classification errors):
+4111 = LOCAL/SUBURBAN ONLY: city metro (Delhi Metro, Mumbai Metro), city buses (DTC, BEST, BMTC, MTC), local trains
+4131 = INTERCITY/STATE BUS: ALL State Road Transport Corporations — GSRTC, KSRTC, MSRTC, UPSRTC, TSRTC, OSRTC, RSRTC, HRTC, ASTC, BSRTC, PEPSU — and any STC/SRTC booking portal
+4112 = PASSENGER RAILWAYS (intercity): IRCTC, Indian Railways ticket booking
+4511 = AIRLINES: IndiGo, Air India, SpiceJet, Vistara, GoAir, AirAsia India
+4722 = TRAVEL AGENCIES/TOUR OPERATORS: MakeMyTrip, Yatra, Cleartrip, Goibibo (aggregators, NOT transport operators)
+4789 = TRANSPORT NEC: Ola, Uber, Rapido, logistics/courier, rental cars
+4121 = TAXICABS/LIMOUSINES: premium cab services
+⚠️ RULE: URL contains "gsrtc", "ksrtc", "msrtc", "srtc", "stc", "roadways" → ALWAYS use 4131
+
 KEY MCC REFERENCE:
-5411=Grocery/Supermarkets, 5812=Restaurants/Eating Places, 5814=Fast Food,
-5912=Pharmacy/Drug Stores, 7011=Hotels/Lodging, 4111=Transit/Transport,
+5411=Grocery/Supermarkets, 5812=Restaurants/Eating Places, 5814=Fast Food/QSR,
+5912=Pharmacy/Drug Stores, 7011=Hotels/Lodging/Resorts,
 7372=Software/SaaS, 7371=IT/Computer Services, 5045=Computers/Software,
-8099=Health Practitioners, 8011=Doctors/Physicians, 8062=Hospitals,
-7389=Business Services NEC, 4814=Telecom, 5940=Sporting Goods,
+8099=Health Practitioners NEC, 8011=Doctors/Physicians, 8062=Hospitals,
+7389=Business Services NEC, 4814=Telecom & Broadcasting, 5940=Sporting Goods,
 5651=Clothing/Apparel, 5722=Appliances, 5734=Computer/Electronics Stores,
 6211=Securities/Brokers, 6300=Insurance, 8742=Management Consulting,
-4789=Transportation NEC, 5200=Home Improvement/Supply, 4900=Utilities,
+5200=Home Improvement/Supply, 4900=Utilities/Electric/Gas,
 5300=Wholesale Clubs, 5999=Misc Retail, 7392=Consulting Services,
 5691=Clothing Stores, 5621=Women's Clothing, 5311=Department Stores,
-7523=Parking Lots, 5541=Service Stations/Gas, 4722=Travel Agencies,
-7832=Movie Theaters, 5942=Book Stores, 5947=Gift/Card/Novelty Shops
+7523=Parking Lots, 5541=Service Stations/Gas,
+7832=Movie Theaters, 5942=Book Stores, 5947=Gift/Card/Novelty Shops,
+5816=Digital Goods/Gaming, 8299=Educational Services, 6012=Financial Institutions,
+5813=Bars/Cocktail Lounges, 5411=Grocery, 5441=Candy/Confectionery
 
 CRITICAL: Respond ONLY with a single JSON object. No text before or after. No markdown. No backticks.
 Output exactly:
