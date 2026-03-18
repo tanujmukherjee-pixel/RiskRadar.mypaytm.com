@@ -341,13 +341,14 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
   <div id="batch-results"></div>
 </div>
 
-<div class="foot">Powered by llama-3.3-70b-versatile · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v2.1</div>
+<div class="foot">Powered by llama-3.1-8b-instant / llama-3.3-70b · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v2.1</div>
 </div>
 
 <script>
 const _k = ['Z3NrX2RXaEtPdmM1YkFVM0lRb2JQekZV','V0dkeWIzRlk1NmFoYzA0MjBjcW9xNGIx','T3lOSWpqOGo='];
 const GROQ_KEY = localStorage.getItem('groq_key') || atob(_k[0]) + atob(_k[1]) + atob(_k[2]);
-const MODEL = 'llama-3.3-70b-versatile';
+const MODELS = ['llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'mixtral-8x7b-32768'];
+let modelIdx = 0;
 
 const SYS = `You are a merchant classification expert for Paytm Payments Bank (NPCI/ISO 18245).
 Given a merchant website URL, analyze it and return merchant category codes.
@@ -414,33 +415,43 @@ function showErr(msg) {
 function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 async function callGroq(url) {
-  const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 1024,
-      temperature: 0.1,
-      messages: [
-        { role: 'system', content: SYS },
-        { role: 'user', content: 'Merchant website: ' + url + '\n\nReturn ONLY the JSON object.' }
-      ]
-    })
-  });
-  if (!resp.ok) {
-    const e = await resp.json().catch(() => ({}));
-    throw new Error('API error ' + resp.status + ': ' + (e.error?.message || 'Unknown'));
+  for (let attempt = 0; attempt < MODELS.length; attempt++) {
+    const model = MODELS[(modelIdx + attempt) % MODELS.length];
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
+      body: JSON.stringify({
+        model,
+        max_tokens: 1024,
+        temperature: 0.1,
+        messages: [
+          { role: 'system', content: SYS },
+          { role: 'user', content: 'Merchant website: ' + url + '\n\nReturn ONLY the JSON object.' }
+        ]
+      })
+    });
+    if (resp.status === 429) {
+      if (attempt < MODELS.length - 1) continue; // try next model
+      const e = await resp.json().catch(() => ({}));
+      const retryMsg = e.error?.message?.match(/try again in ([^.]+)/)?.[1];
+      throw new Error('Daily rate limit reached on all models.' + (retryMsg ? ' Retry in ' + retryMsg + '.' : ' Try again tomorrow or use a different API key.'));
+    }
+    if (!resp.ok) {
+      const e = await resp.json().catch(() => ({}));
+      throw new Error('API error ' + resp.status + ': ' + (e.error?.message || 'Unknown'));
+    }
+    modelIdx = (modelIdx + attempt) % MODELS.length; // remember working model
+    const data = await resp.json();
+    const raw = data.choices?.[0]?.message?.content || '';
+    let parsed = null;
+    try { parsed = JSON.parse(raw.trim()); } catch(_) {}
+    if (!parsed) {
+      const s = raw.indexOf('{'), e = raw.lastIndexOf('}');
+      if (s !== -1 && e > s) { try { parsed = JSON.parse(raw.slice(s, e + 1)); } catch(_) {} }
+    }
+    if (!parsed) throw new Error('Could not parse LLM response');
+    return parsed;
   }
-  const data = await resp.json();
-  const raw = data.choices?.[0]?.message?.content || '';
-  let parsed = null;
-  try { parsed = JSON.parse(raw.trim()); } catch(_) {}
-  if (!parsed) {
-    const s = raw.indexOf('{'), e = raw.lastIndexOf('}');
-    if (s !== -1 && e > s) { try { parsed = JSON.parse(raw.slice(s, e + 1)); } catch(_) {} }
-  }
-  if (!parsed) throw new Error('Could not parse LLM response');
-  return parsed;
 }
 
 async function runSingle() {
