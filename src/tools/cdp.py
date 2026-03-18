@@ -1,8 +1,10 @@
-import pandas as pd
-from ..utils.api import get_request
-from typing import List
+from typing import Any, List
 
-session_map = {}
+import pandas as pd
+
+from ..utils.api import get_request
+
+session_map: dict[str, Any] = {}
 
 
 def fetch_all_datasets(tag: str, session_id: str):
@@ -16,7 +18,7 @@ def fetch_all_datasets(tag: str, session_id: str):
     response = get_request(url, None)
     df = pd.DataFrame(response)
     # Filter for active status and select required columns
-    df = df[df['status'] == 'ACTIVE'][['id', 'name', 'description']]
+    df = df[df["status"] == "ACTIVE"][["id", "name", "description"]]
 
     filtered_df = pd.DataFrame()
 
@@ -24,33 +26,40 @@ def fetch_all_datasets(tag: str, session_id: str):
     # Calculate BM25-like scores for name and description matches
     k1 = 1.5
     b = 0.75
-    
+
     # Calculate average field lengths
-    avg_name_len = df['name'].str.len().mean()
-    avg_desc_len = df['description'].str.len().mean()
-    
+    avg_name_len = df["name"].str.len().mean()
+    avg_desc_len = df["description"].str.len().mean()
+
     # Calculate scores for name matches
-    name_matches = df['name'].str.contains(tag, case=False, na=False)
-    name_scores = name_matches * (1 + k1) / (1 + k1 * ((df['name'].str.len() / avg_name_len) * b))
-    
+    name_matches = df["name"].str.contains(tag, case=False, na=False)
+    name_scores = (
+        name_matches * (1 + k1) / (1 + k1 * ((df["name"].str.len() / avg_name_len) * b))
+    )
+
     # Calculate scores for description matches
-    desc_matches = df['description'].str.contains(tag, case=False, na=False) 
-    desc_scores = desc_matches * (1 + k1) / (1 + k1 * ((df['description'].str.len() / avg_desc_len) * b))
-    
+    desc_matches = df["description"].str.contains(tag, case=False, na=False)
+    desc_scores = (
+        desc_matches
+        * (1 + k1)
+        / (1 + k1 * ((df["description"].str.len() / avg_desc_len) * b))
+    )
+
     # Combine scores with higher weight for name matches
     total_scores = (name_scores * 2) + desc_scores
-    
+
     # Filter rows with non-zero scores and add score column
     filtered_df_temp = df[total_scores > 0].copy()
-    filtered_df_temp['relevance_score'] = total_scores[total_scores > 0]
-    
+    filtered_df_temp["relevance_score"] = total_scores[total_scores > 0]
+
     # Sort by score and concatenate
-    filtered_df_temp = filtered_df_temp.sort_values('relevance_score', ascending=False)
+    filtered_df_temp = filtered_df_temp.sort_values("relevance_score", ascending=False)
     filtered_df = pd.concat([filtered_df, filtered_df_temp])
 
     # Remove duplicates and drop the name column
-    filtered_df = filtered_df.drop_duplicates().drop('name', axis=1)
+    filtered_df = filtered_df.drop_duplicates().drop("name", axis=1)
     return filtered_df.to_dict(orient="records")
+
 
 def fetch_dataset_schema(id: str):
     """
@@ -62,7 +71,14 @@ def fetch_dataset_schema(id: str):
     fields = response["fields"]
     df = pd.DataFrame(fields)
     # Select only the specified columns if they exist in the DataFrame
-    columns_to_keep = ['name', 'data_type', 'column_type', 'description', 'primary_key', 'status']
+    columns_to_keep = [
+        "name",
+        "data_type",
+        "column_type",
+        "description",
+        "primary_key",
+        "status",
+    ]
     df = df[df.columns.intersection(columns_to_keep)]
     df["schema"] = table_name
     return df.to_dict(orient="records")

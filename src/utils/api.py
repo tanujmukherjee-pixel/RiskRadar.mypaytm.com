@@ -1,10 +1,12 @@
+import ssl
+from typing import Optional
+
 import requests
 
-import ssl
+ssl._create_default_https_context = ssl._create_unverified_context  # type: ignore[assignment]
 
-ssl._create_default_https_context = ssl._create_unverified_context
 
-def get_request(url: str, headers: dict) -> dict:
+def get_request(url: str, headers: Optional[dict] = None) -> dict:
     """
     Sends a GET request to the given URL with the given headers.
     """

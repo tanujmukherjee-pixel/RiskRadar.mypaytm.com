@@ -17,12 +17,12 @@ CONDA_PATH := /opt/homebrew/Caskroom/miniconda/base
 check-system:
 	@echo "Checking system requirements..."
 	@which python3 >/dev/null || (echo "python3 is not installed" && exit 1)
-	@python3 -c "import venv" >/dev/null 2>&1 || (echo "python3-venv is not installed" && exit 1)
+	@python3.13 -c "import venv" >/dev/null 2>&1 || (echo "python3-venv is not installed" && exit 1)
 	@which conda >/dev/null || (echo "conda is not installed" && exit 1)
 
 # Check Python version
 check-python: check-system
-	@python3 -c "import sys; \
+	@python3.13 -c "import sys; \
 	assert sys.version_info >= ($(PYTHON_MAJOR), $(PYTHON_MINOR)), \
 	'Python $(PYTHON_MAJOR).$(PYTHON_MINOR) or higher is required'"
 
@@ -38,12 +38,12 @@ conda-env: source-conda
 
 # Install dependencies using pip
 deps: check-python
-	python3 -m pip install --upgrade pip
-	python3 -m pip install -r requirements.txt
+	python3.13 -m pip install --upgrade pip
+	python3.13 -m pip install -r requirements.txt
 
 # Install module
 install: deps
-	python3 -m pip install -e .
+	python3.13 -m pip install -e .
 
 # Run tests without coverage
 test: deps
@@ -54,24 +54,24 @@ cover: deps
 	pytest tests/ --cov=./ --cov-report=term-missing
 
 lint:
-	flake8 src/
-	black --check src/
-	black --check /tests
-	isort --check-only src/
-	isort --check-only /tests
-	mypy src/
-	mypy tests/
-	pylint src/
-	pylint tests/
+	python3.13 -m flake8 src/
+	python3.13 -m black --check --target-version py313 src/
+	python3.13 -m black --check --target-version py313 tests/
+	python3.13 -m isort --check-only src/
+	python3.13 -m isort --check-only tests/
+	python3.13 -m mypy src/
+	python3.13 -m mypy tests/
+	python3.13 -m pylint src/
+	python3.13 -m pylint tests/
 
 # Run all checks
 check: test lint
 
 format:
-	black src/
-	black tests/
-	isort src/
-	isort tests/
+	python3.13 -m black --target-version py313 src/
+	python3.13 -m black --target-version py313 tests/
+	python3.13 -m isort src/
+	python3.13 -m isort tests/
 
 clean:
 	rm -rf build/
@@ -91,7 +91,7 @@ docs:
 
 docker_build_for_deployment: ## Build and push Docker image for deployment.
 	@echo "Building & pushing Docker image ${VERSION} to ${ECR_REPO}..."
-	python3 -m build
+	python3.13 -m build
 	docker build -t ${IMAGE_NAME}:${VERSION} .
 	aws ecr get-login-password --region ap-south-1 | docker login -u AWS --password-stdin ${ECR_REPO}
 	docker tag ${IMAGE_NAME}:${VERSION} ${ECR_REPO}:${VERSION}
@@ -100,7 +100,7 @@ docker_build_for_deployment: ## Build and push Docker image for deployment.
 
 docker_build_for_deployment_multiple_tags: ## Build and push Docker image with multiple tags.
 	@echo "Building & pushing Docker image ${VERSION} and ${ADDITIONAL_VERSION} to ${ECR_REPO}..."
-	python3 -m build
+	python3.13 -m build
 	docker build -t ${IMAGE_NAME}:${VERSION} .
 	aws ecr get-login-password --region ap-south-1 | docker login -u AWS --password-stdin ${ECR_REPO}
 	docker tag ${IMAGE_NAME}:${VERSION} ${ECR_REPO}:${VERSION}
@@ -111,4 +111,4 @@ docker_build_for_deployment_multiple_tags: ## Build and push Docker image with m
 
 # Run the app using uvicorn
 run:
-	python3 -m uvicorn src:app --reload
+	python3.13 -m uvicorn src:app --reload

@@ -9,4 +9,3 @@ SYSTEM_PROMPT_FILE = "system.jinja2"
 APPROACH_PROMPT_FILE = "approach.jinja2"
 
 OUTPUT_PROMPT_FILE = "output.jinja2"
-

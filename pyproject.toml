@@ -15,6 +15,12 @@ dependencies = {file = ["requirements.txt"]}
 
 [tool.poetry.dependencies]
 fastapi = "^0.115.8"
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+ignore_missing_imports = true
+
 [build-system]
 requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"

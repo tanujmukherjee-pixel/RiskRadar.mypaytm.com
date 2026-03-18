@@ -1,15 +1,19 @@
-from typing import List, Dict
-from src.utils.api import get_request
 import base64
-username="Anshul1Chauhan"
-app_password="REDACTED_ATLASSIAN_TOKEN"
-workspace="paytmteam"
+from typing import Dict, List, Optional, Union
+
+from src.utils.api import get_request
+
+username = "Anshul1Chauhan"
+app_password = "REDACTED_ATLASSIAN_TOKEN"
+workspace = "paytmteam"
 base_url: str = "https://api.bitbucket.org/2.0"
+
 
 def _create_auth_header():
     return {
         "Authorization": f"Basic {base64.b64encode(f'{username}:{app_password}'.encode()).decode()}"
     }
+
 
 def get_workspace_info() -> Dict:
     """Get workspace information"""
@@ -30,7 +34,8 @@ def get_repository_info(repo_slug: str) -> Dict:
     except Exception as e:
         return {"error": str(e)}
 
-def get_all_branches(repo_slug: str) -> List[Dict]:
+
+def get_all_branches(repo_slug: str) -> Union[List[Dict], Dict]:
     """Get all branches from a repository"""
     url = f"{base_url}/repositories/{workspace}/{repo_slug}/refs/branches"
     try:
@@ -39,11 +44,14 @@ def get_all_branches(repo_slug: str) -> List[Dict]:
     except Exception as e:
         return {"error": str(e)}
 
+
 def get_commits(repo_slug: str, branch: str = "main") -> List[Dict]:
     """Get all commits from a branch"""
     commits = []
-    url = f"{base_url}/repositories/{workspace}/{repo_slug}/commits/{branch}"
-    
+    url: Optional[str] = (
+        f"{base_url}/repositories/{workspace}/{repo_slug}/commits/{branch}"
+    )
+
     while url:
         try:
             headers = _create_auth_header()
@@ -51,12 +59,13 @@ def get_commits(repo_slug: str, branch: str = "main") -> List[Dict]:
             response = get_request(url, headers)
             commits.extend(response.get("values", []))
             url = response.get("next")
-        except Exception as e:
+        except Exception:
             break
-    
+
     return commits
 
-def get_all_repositories(page: int = 1) -> List[Dict]:
+
+def get_all_repositories(page: int = 1) -> Union[List[Dict], Dict]:
     """Get all repositories"""
     url = f"{base_url}/repositories/{workspace}?page={page}&sort=-updated_on"
     try:
@@ -64,4 +73,3 @@ def get_all_repositories(page: int = 1) -> List[Dict]:
         return response
     except Exception as e:
         return {"error": str(e)}
-    
