@@ -1,0 +1,136 @@
+options:
+  size: 4x
+  runtime:
+    cloud:
+      atlassian-ip-ranges: true
+
+pipelines:
+  branches:
+    master:
+      - step:
+          name: Tag, build and push prod image
+          image:
+            name: python:3.12
+          oidc: true
+          services:
+            - docker
+          caches:
+            - maven
+          script:
+            - export AWS_ROLE_ARN=arn:aws:iam::968032760053:role/ecr-rw-pipeline-bitbucket
+            - export AWS_WEB_IDENTITY_TOKEN_FILE=/tmp/web_identity_token_file
+            - echo $BITBUCKET_STEP_OIDC_TOKEN > $AWS_WEB_IDENTITY_TOKEN_FILE
+            - unset AWS_ACCESS_KEY_ID
+            - unset AWS_SECRET_ACCESS_KEY
+            - pip install -r requirements.txt
+            - bash scripts/prod_release.sh $BITBUCKET_BRANCH $AWS_ECR_REPO prod
+  custom:
+    dev-branches:
+      - step:
+          name: Tag, build and push dev image
+          image:
+            name: python:3.12
+          oidc: true
+          services:
+            - docker
+          caches:
+            - pip
+          script:
+            - apt-get update && apt-get install -y awscli
+            - export AWS_ROLE_ARN=arn:aws:iam::968032760053:role/ecr-rw-pipeline-bitbucket
+            - export AWS_WEB_IDENTITY_TOKEN_FILE=/tmp/web_identity_token_file
+            - echo $BITBUCKET_STEP_OIDC_TOKEN > $AWS_WEB_IDENTITY_TOKEN_FILE
+            - unset AWS_ACCESS_KEY_ID
+            - unset AWS_SECRET_ACCESS_KEY
+            - pip install fire
+            - pip install build
+            - bash scripts/dev_release.sh $BITBUCKET_BRANCH $AWS_ECR_REPO
+    version-inc-patch:
+      - step:
+          name: Increment patch version
+          image:
+            name: python:3.12
+          oidc: true
+          services:
+            - docker
+          caches:
+            - maven
+            - docker
+          script:
+            - export AWS_ROLE_ARN=arn:aws:iam::968032760053:role/ecr-rw-pipeline-bitbucket
+            - export AWS_WEB_IDENTITY_TOKEN_FILE=/tmp/web_identity_token_file
+            - echo $BITBUCKET_STEP_OIDC_TOKEN > $AWS_WEB_IDENTITY_TOKEN_FILE
+            - unset AWS_ACCESS_KEY_ID
+            - unset AWS_SECRET_ACCESS_KEY
+            - bash scripts/increment_version.sh $BITBUCKET_BRANCH patch
+    version-inc-minor:
+      - step:
+          name: Increment minor version
+          image:
+            name: python:3.12
+          oidc: true
+          services:
+            - docker
+          caches:
+            - maven
+            - docker
+          script:
+            - export AWS_ROLE_ARN=arn:aws:iam::968032760053:role/ecr-rw-pipeline-bitbucket
+            - export AWS_WEB_IDENTITY_TOKEN_FILE=/tmp/web_identity_token_file
+            - echo $BITBUCKET_STEP_OIDC_TOKEN > $AWS_WEB_IDENTITY_TOKEN_FILE
+            - unset AWS_ACCESS_KEY_ID
+            - unset AWS_SECRET_ACCESS_KEY
+            - bash scripts/increment_version.sh $BITBUCKET_BRANCH minor
+    version-inc-major:
+      - step:
+          name: Increment major version
+          image:
+            name: python:3.12
+          oidc: true
+          services:
+            - docker
+          caches:
+            - maven
+            - docker
+          script:
+            - export AWS_ROLE_ARN=arn:aws:iam::968032760053:role/ecr-rw-pipeline-bitbucket
+            - export AWS_WEB_IDENTITY_TOKEN_FILE=/tmp/web_identity_token_file
+            - echo $BITBUCKET_STEP_OIDC_TOKEN > $AWS_WEB_IDENTITY_TOKEN_FILE
+            - unset AWS_ACCESS_KEY_ID
+            - unset AWS_SECRET_ACCESS_KEY
+            - bash scripts/increment_version.sh $BITBUCKET_BRANCH major
+  pull-requests:
+    release/*:
+      - step:
+          name: check release version availability
+          image:
+            name: python:3.12
+          oidc: true
+          services:
+            - docker
+          caches:
+            - maven
+          script:
+            - |
+              if [ "${BITBUCKET_PR_DESTINATION_BRANCH}" = "master" ]; then
+                bash scripts/release_version_check.sh;
+              else
+                echo "Version check not required";
+              fi
+    hotfix/*:
+      - step:
+          name: check release version availability
+          image:
+            name: python:3.12
+          oidc: true
+          services:
+            - docker
+          caches:
+            - maven
+          script:
+            - |
+              if [ "${BITBUCKET_PR_DESTINATION_BRANCH}" = "master" ]; then
+                bash scripts/release_version_check.sh;
+              else
+                echo "Version check not required";
+              fi

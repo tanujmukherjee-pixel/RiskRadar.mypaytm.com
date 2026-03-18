@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "agency-api",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "set -a && . ./.env && set +a && python3.13 -m uvicorn src:app --reload --port $PORT"],
+      "port": 8000,
+      "autoPort": true
+    }
+  ]
+}
