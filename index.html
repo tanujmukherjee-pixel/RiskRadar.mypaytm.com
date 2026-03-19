@@ -474,7 +474,7 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
   <div id="batch-results"></div>
 </div>
 
-<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v4.2 — reads website + few-shot learning</div>
+<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v4.3 — reads 3 pages per merchant</div>
 </div>
 
 <script>
@@ -672,6 +672,8 @@ MANDATORY RULES:
 - GSRTC/KSRTC/MSRTC/UPSRTC/any State RTC/STC/Roadways → "Intercity & State Bus (RTC/STC)"
 - City metro/DTC/BEST/BMTC/local suburban rail → "Metro / Local Transit / City Bus"
 - SaaS/cloud/web hosting/software-as-a-service → "Web Hosting / SaaS / Cloud"
+- B2B software sold TO schools/colleges for management (ERP, fee management, attendance, student tracking, school admin) → "Web Hosting / SaaS / Cloud" (NOT E-Learning)
+- E-Learning is ONLY for platforms where students/learners directly consume educational content (courses, videos, tutoring) — NOT school management software
 - Zomato/Swiggy/food delivery aggregator apps → "Online Food Delivery App"
 - LIC specifically (licindia.in) → "LIC (Life Insurance Corporation)"
 - NBFC/EMI/personal loan apps (Bajaj, IIFL, Paisabazaar) → "Loans / NBFC / EMI / Lending"
@@ -1186,21 +1188,28 @@ function extractDomain(url){
   return url.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').split('/')[0].split('?')[0].split(':')[0];
 }
 
-// ── WEB CONTENT FETCH (Jina AI Reader — CORS-safe, free) ─────────────────────
-async function fetchPageContent(url) {
+// ── WEB CONTENT FETCH (Jina AI Reader — reads homepage + about + services) ───
+async function fetchOnePage(pageUrl) {
   try {
-    const jinaUrl = 'https://r.jina.ai/' + url;
-    const resp = await fetch(jinaUrl, {
+    const resp = await fetch('https://r.jina.ai/' + pageUrl, {
       headers: { 'Accept': 'text/plain', 'X-Return-Format': 'text' },
-      signal: AbortSignal.timeout(12000)
+      signal: AbortSignal.timeout(10000)
     });
-    if (!resp.ok) return null;
-    const text = await resp.text();
-    // Trim to ~5000 chars — enough for context, within token limits
-    return text.slice(0, 5000).trim() || null;
-  } catch(e) {
-    return null; // Timeout or network error → fall back to URL-only
-  }
+    if (!resp.ok) return '';
+    return (await resp.text()).slice(0, 2500).trim();
+  } catch(e) { return ''; }
+}
+
+async function fetchPageContent(url) {
+  const base = url.replace(/\/+$/, '');
+  // Fetch homepage + /about + /services in parallel for richer context
+  const [home, about, services] = await Promise.all([
+    fetchOnePage(url),
+    fetchOnePage(base + '/about'),
+    fetchOnePage(base + '/services')
+  ]);
+  const combined = [home, about, services].filter(Boolean).join('\n\n--- (next page) ---\n\n');
+  return combined.trim() || null;
 }
 
 // ── TWO-STEP CLASSIFY ─────────────────────────────────────────────────────────
