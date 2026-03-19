@@ -474,7 +474,7 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
   <div id="batch-results"></div>
 </div>
 
-<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v4.3 — reads 3 pages per merchant</div>
+<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v4.4 — follows real nav links</div>
 </div>
 
 <script>
@@ -1188,7 +1188,7 @@ function extractDomain(url){
   return url.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').split('/')[0].split('?')[0].split(':')[0];
 }
 
-// ── WEB CONTENT FETCH (Jina AI Reader — reads homepage + about + services) ───
+// ── WEB CONTENT FETCH (Jina AI Reader — homepage + follows real nav links) ───
 async function fetchOnePage(pageUrl) {
   try {
     const resp = await fetch('https://r.jina.ai/' + pageUrl, {
@@ -1196,20 +1196,48 @@ async function fetchOnePage(pageUrl) {
       signal: AbortSignal.timeout(10000)
     });
     if (!resp.ok) return '';
-    return (await resp.text()).slice(0, 2500).trim();
+    return (await resp.text()).slice(0, 3000).trim();
   } catch(e) { return ''; }
 }
 
+// Extract internal links from Jina markdown output that look like key content pages
+function extractKeyLinks(text, origin) {
+  const KEY = /about|product|service|solution|feature|pricing|what.we|who.we|our.work|offering/i;
+  const SKIP = /login|signup|register|cart|checkout|contact|blog|news|faq|privacy|terms/i;
+  const seen = new Set();
+  const links = [];
+  // Jina returns links as [text](url)
+  for (const m of text.matchAll(/\[([^\]]{2,40})\]\((https?:\/\/[^)]+)\)/g)) {
+    const [, text, href] = m;
+    try {
+      const u = new URL(href);
+      if (u.origin !== origin) continue;        // same domain only
+      if (SKIP.test(href) || SKIP.test(text)) continue;
+      if (!KEY.test(href) && !KEY.test(text)) continue;
+      if (seen.has(u.pathname)) continue;
+      seen.add(u.pathname);
+      links.push(href);
+      if (links.length >= 3) break;
+    } catch(_) {}
+  }
+  return links;
+}
+
 async function fetchPageContent(url) {
-  const base = url.replace(/\/+$/, '');
-  // Fetch homepage + /about + /services in parallel for richer context
-  const [home, about, services] = await Promise.all([
-    fetchOnePage(url),
-    fetchOnePage(base + '/about'),
-    fetchOnePage(base + '/services')
-  ]);
-  const combined = [home, about, services].filter(Boolean).join('\n\n--- (next page) ---\n\n');
-  return combined.trim() || null;
+  // Step 1: fetch homepage
+  const home = await fetchOnePage(url);
+  if (!home) return null;
+
+  // Step 2: find real nav links in the page and follow up to 3
+  try {
+    const origin = new URL(url).origin;
+    const keyLinks = extractKeyLinks(home, origin);
+    const subPages = await Promise.all(keyLinks.map(l => fetchOnePage(l)));
+    const all = [home, ...subPages].filter(Boolean);
+    return all.join('\n\n--- (next page) ---\n\n').trim() || null;
+  } catch(_) {
+    return home || null;
+  }
 }
 
 // ── TWO-STEP CLASSIFY ─────────────────────────────────────────────────────────
