@@ -271,7 +271,7 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
     <div class="logo">R</div>
     <div class="hdr-title">
       <h1>Risk<span>Radar</span></h1>
-      <div class="sub">Paytm Risk &amp; Compliance · MCC Identifier</div>
+      <div class="sub">Paytm Risk &amp; Compliance · MCC Identifier · v5.5</div>
     </div>
   </div>
   <div class="hdr-right">
@@ -844,8 +844,13 @@ MANDATORY RULES:
 - "IT Services / ITES / BPO" (4816) = companies delivering SERVICES using humans (coding projects, BPO operations, call center, staffing). Key signal: "services", "outsourcing", "solutions", "we build/develop for clients"
 - Multi-service ISP that also provides cable TV (internet + cable TV bundle) → "Cable TV / Local Cable Operator" (4899) if cable TV is a primary offering
 - Gym / fitness club / wellness center (physical workout, yoga, CrossFit, Zumba, personal training) → "Gym & Fitness Club" (7997) — NOT Jewellery, NOT Cosmetics. Key signal: workout, fitness, health club, membership, trainer
+- Sports nutrition / protein supplements / whey powder / pre-workout / fitness supplement brands (fastandup.in, MuscleBlaze) → "Gym & Fitness Club" (7997) — NOT Food Delivery, NOT FMCG. Key signal: protein, supplement, nutrition for athletes/fitness
 - Aquarium / fish tank / pond supplies → "Grocery / Supermarket / Kirana" is WRONG — use "Pet Care & Supplies" (5995) for pet/aquarium products
 - Inflatable products / outdoor leisure / garden equipment → "Home Decor / Furniture / Kitchen" (5712)
+- Online used car / used bike marketplace (droom.in, Cars24, OLX Autos) → "Car / Bike Dealership" (5511) — NOT "Online Marketplace". Key signal: buy/sell/rent vehicles, car listing platform
+- Real estate DEVELOPER / builder (constructs and sells new residential/commercial properties, apartments, townships) → MCC 1520 — NOT Real Estate Agent (6513). Key signal: "developer", "builder", "under construction", "possession", "new project launch"
+- Real Estate AGENT / broker (facilitates buying/selling/renting of existing properties, no construction) → "Real Estate / Property" (6513)
+- Jio AirFiber / Jio Fiber / any fiber broadband / home internet / fixed-line broadband subscription → "Broadband / Internet Service Provider" (4816) — STRICTLY NOT Telecom (4814). Rule: if URL contains "airfiber", "fiber", "broadband", "home internet" → 4816. MCC 4814 is ONLY for mobile SIM recharge/postpaid mobile billing
 - If truly unclear after careful analysis → "Unknown / Cannot Determine"
 
 TRAINING DATA EXAMPLES — match these patterns for correct sub-category:
@@ -859,7 +864,8 @@ Retail: Pooja / Religious Goods: ashramestore.com, helpusgreen.com, thekkgroups.
 Healthcare: Pharmacy / Drug Store: pharmeasy.in, apollopharmacy.in, netmeds.com | Hospital: kauveryhospital.com, miotinternational.com | Doctors / Clinic / Diagnostic Centre: care24.co.in, qupapp.com, reboot-wellness.com
 Food: Online Food Delivery App: gofoodieonline.com, aahari.com, srfoods.co.in (multi-restaurant aggregators ONLY) | Restaurant / Eating Place: dosavillage.com | Grocery / Supermarket / Kirana: barosi.in, flabiafresh.com | Bakery: whipped.in, frozenbottle.in, ambikadairyfarm.com (custom cakes / baked goods — NOT food delivery) | Meat / Fish / Poultry: freshfishbasket.com, calcuttafreshfoods.com
 Retail: FMCG Wholesale / B2B Distribution: aloestoreindia.in, aajjo.com (B2B wholesale/distributor model) | Cosmetics / Beauty / Skincare: ybpskin.com, kapiva.in, endurasupplements.com, ustraa.com (retail consumer products) | Gift Shop / Novelty: winni.in, nikkiflower.com, mypoojabox.in | Apparel / Clothing / Fashion: aakashgangauniforms.com, tulobaby.com, thedancebible.com | Jewellery Store: princejewellery.com, sencogoldanddiamonds.com | Electronics & Home Appliances: glenindia.com, vishalint.com, vidiem.in | Home Decor / Furniture / Kitchen: hoopa.in, angelfurniture.in, niana.co, jova.in (inflatable/outdoor/garden products = home/leisure) | Books / Book Store: surabooks.com, ebcwebstore.com | Stationery / Office Supplies: raajkart.com, statmo.in | Footwear / Shoes: shopcrocs.in, orazosafety.com | Toys / Games / Hobby: nekavo.com, khelna.in | Pet Care & Supplies: thepetnest.com, thatdogintuxedo.com, aqua-impex.com (aquarium/fish tank/pond supplies = pet care — NOT grocery) | Pooja / Religious Goods: ashramestore.com, helpusgreen.com, thekkgroups.in | Computer Accessories (Retail): store.lenovo.com, thecosmicbyte.com | Online Marketplace: flipkart.com, togofogo.com
-Personal Services: Gym & Fitness Club: theauric.com, curefit.com (fitness membership/workout/yoga studio — NOT jewellery, NOT cosmetics — key signals: gym, fitness, workout, health club, trainer)
+Personal Services: Gym & Fitness Club: theauric.com, curefit.com, fastandup.in, muscleblaze.com (fitness membership/workout/yoga studio AND sports nutrition/protein supplement brands — NOT jewellery, NOT cosmetics — key signals: gym, fitness, workout, protein, supplement)
+Real Estate: Car / Bike Dealership (Used): droom.in, cars24.com (online vehicle marketplace = dealership 5511, NOT online marketplace) | Real Estate Developer / Builder: shubhashray.com, sobha.com (builds new homes = 1520, NOT real estate agent 6513) | Broadband / Internet Service Provider: actcorp.in, jio.com/airfiber, jio.com/fiber (Jio Fiber/AirFiber = broadband 4816 — NOT Telecom 4814)
 BFSI: LIC (Life Insurance Corporation): licindia.in ONLY | Insurance (Non-LIC): reliancegeneral.co.in, zopper.com | Loans / NBFC / EMI / Lending: paisabazaar.com, abfldirect.com, axio.co.in | Stock Broker / Securities / Trading: zerodha.com, investello.com | Real Estate / Property: magicbricks.com, ipanreal.com
 Automobiles: Car & Bike Dealership: hondacarindia.com, droom.in | Auto Parts & Accessories: trakntell.com, tigermotoo.com
 Utilities: Electricity / Power / Utility: tpwesternodisha.com | NGO / Non-Profit / Charitable Trust: aastha.org.in, umeedngo.org | State Government / Govt Department: mahaonline.gov.in
