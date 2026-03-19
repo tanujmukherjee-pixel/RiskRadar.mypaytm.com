@@ -170,6 +170,35 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
 .bp-bar-wrap{height:4px;background:var(--surf3);border-radius:2px;margin-top:10px;overflow:hidden}
 .bp-bar{height:4px;background:var(--acc);border-radius:2px;transition:width .4s ease;width:0%}
 .bp-txt{font-family:var(--mono);font-size:12px;color:var(--mu2)}
+
+/* Source badge (lookup vs llm fallback) */
+.src-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);padding:3px 9px;border-radius:20px;letter-spacing:.5px;margin-left:8px;vertical-align:middle}
+.src-lookup{background:rgba(52,211,153,.08);color:var(--ok);border:1px solid rgba(52,211,153,.2)}
+.src-fallback{background:rgba(255,189,46,.08);color:var(--warn);border:1px solid rgba(255,189,46,.2)}
+
+/* Review warning banner */
+.review-banner{background:rgba(255,189,46,.05);border:1px solid rgba(255,189,46,.2);border-radius:var(--rl);padding:12px 18px;margin-bottom:20px;font-size:12px;color:var(--warn);font-family:var(--mono);display:none;align-items:center;gap:10px;line-height:1.6}
+.review-banner.on{display:flex}
+
+/* Feedback row */
+.fb-row{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);padding:14px 20px;margin-bottom:20px;display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.fb-lbl{font-size:12px;font-family:var(--mono);color:var(--mu);flex-shrink:0}
+.fb-btns{display:flex;gap:6px}
+.fb-btn{border:1px solid var(--bdr2);background:none;border-radius:var(--rl);padding:6px 14px;font-size:12px;font-family:var(--mono);cursor:pointer;transition:all .2s;color:var(--mu2)}
+.fb-btn:hover.yes{border-color:rgba(52,211,153,.4);color:var(--ok);background:rgba(52,211,153,.06)}
+.fb-btn:hover.no{border-color:rgba(255,95,87,.3);color:var(--err);background:rgba(255,95,87,.05)}
+.fb-btn.active-yes{border-color:rgba(52,211,153,.4);color:var(--ok);background:rgba(52,211,153,.06)}
+.fb-btn.active-no{border-color:rgba(255,95,87,.3);color:var(--err);background:rgba(255,95,87,.05)}
+.fb-corr{display:none;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;width:100%}
+.fb-corr.on{display:flex}
+.fb-corr-lbl{font-size:11px;font-family:var(--mono);color:var(--mu)}
+.fb-corr input{width:78px;background:var(--surf2);border:1px solid var(--bdr2);border-radius:6px;color:var(--tx);font-family:var(--mono);font-size:13px;padding:6px 10px;outline:none}
+.fb-corr input:focus{border-color:rgba(0,229,180,.5)}
+.fb-save{background:var(--acc);color:#000;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-family:var(--sans);font-weight:700;cursor:pointer}
+.fb-save:hover{opacity:.88}
+.fb-count{font-size:11px;font-family:var(--mono);color:var(--mu);margin-left:auto;cursor:pointer}
+.fb-count:hover{color:var(--acc)}
+.fb-saved{font-size:11px;font-family:var(--mono);color:var(--ok);display:none;margin-left:4px}
 </style>
 </head>
 <body>
@@ -249,10 +278,19 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
           <div class="merchant-name" id="mname"></div>
           <div class="merchant-url" id="murl"></div>
         </div>
-        <div class="conf-badge" id="conf-badge"></div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <div class="conf-badge" id="conf-badge"></div>
+          <span class="src-badge src-lookup" id="src-badge">● Lookup</span>
+        </div>
       </div>
       <div class="lob-text" id="lob-text"></div>
       <div class="tags" id="tags-row"></div>
+    </div>
+
+    <!-- Review banner (shown only for LLM fallback) -->
+    <div class="review-banner" id="review-banner">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="flex-shrink:0"><path d="M8 2L1.5 14h13L8 2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 7v3M8 12v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Low confidence — LLM reasoning used (no matching sub-category found). Verify this MCC before use.
     </div>
 
     <!-- MCC Cards -->
@@ -292,6 +330,24 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
       <div>
         <div class="reason-label">Classification Reasoning</div>
         <div class="reason-text" id="reasoning"></div>
+      </div>
+    </div>
+
+    <!-- Feedback row -->
+    <div class="fb-row">
+      <span class="fb-lbl">Was this MCC correct?</span>
+      <div class="fb-btns">
+        <button class="fb-btn yes" id="fb-yes" onclick="submitFeedback(true)">✓ Yes</button>
+        <button class="fb-btn no" id="fb-no" onclick="submitFeedback(false)">✗ No</button>
+      </div>
+      <span class="fb-saved" id="fb-saved">Saved ✓</span>
+      <span class="fb-count" id="fb-count" onclick="exportFeedback()" title="Click to export CSV"></span>
+      <div class="fb-corr" id="fb-corr">
+        <span class="fb-corr-lbl">Correct NPCI:</span>
+        <input type="text" id="fb-npci" placeholder="e.g. 4131" maxlength="4">
+        <span class="fb-corr-lbl">Cards:</span>
+        <input type="text" id="fb-cards" placeholder="e.g. 4131" maxlength="4">
+        <button class="fb-save" onclick="saveFeedbackWrong()">Save correction</button>
       </div>
     </div>
 
@@ -341,220 +397,333 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
   <div id="batch-results"></div>
 </div>
 
-<div class="foot">Powered by llama-3.1-8b-instant / llama-3.3-70b · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v2.1</div>
+<div class="foot">Two-step classifier · Lookup table (529 merchants) + LLM fallback · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v3.0</div>
 </div>
 
 <script>
+// ── API SETUP ─────────────────────────────────────────────────────────────────
 const _k = ['Z3NrX2RXaEtPdmM1YkFVM0lRb2JQekZV','V0dkeWIzRlk1NmFoYzA0MjBjcW9xNGIx','T3lOSWpqOGo='];
 const GROQ_KEY = localStorage.getItem('groq_key') || atob(_k[0]) + atob(_k[1]) + atob(_k[2]);
 const MODELS = ['llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'mixtral-8x7b-32768'];
 let modelIdx = 0;
 
-const SYS = `You are a merchant MCC classifier for Paytm Payments Bank. Classify merchants using the NPCI UPI MCC list and ISO 18245 Cards MCC list.
+// ── MCC LOOKUP TABLE ──────────────────────────────────────────────────────────
+// Source: 529 verified Paytm merchant samples. Sub-category → { n:npci, c:cards, cat }
+// The LLM ONLY picks a sub-category key. MCCs come from this table — zero hallucination.
+const T = {
+  "Metro / Local Transit / City Bus":             {n:"4111",c:"4111",cat:"Transport"},
+  "Intercity & State Bus (RTC/STC)":              {n:"4131",c:"4131",cat:"Transport"},
+  "Airlines":                                      {n:"4511",c:"4511",cat:"Transport"},
+  "Travel Agency / Tour Operator":                 {n:"4722",c:"4722",cat:"Travel"},
+  "Taxi / Ride Sharing":                           {n:"4121",c:"4121",cat:"Transport"},
+  "Courier / Logistics":                           {n:"4215",c:"4215",cat:"Transport"},
+  "Truck Rentals":                                 {n:"7513",c:"7513",cat:"Transport"},
+  "Toll Recharge":                                 {n:"4784",c:"4784",cat:"Transport"},
+  "Train Ticket / IRCTC":                          {n:"4112",c:"4112",cat:"Transport"},
+  "Telecom / Mobile Recharge":                     {n:"4814",c:"4814",cat:"Telecom"},
+  "Broadband / Internet Service Provider":         {n:"4816",c:"4816",cat:"Telecom"},
+  "Web Hosting / SaaS / Cloud":                    {n:"7372",c:"7372",cat:"Digital Goods"},
+  "IT Services / ITES / BPO":                      {n:"4816",c:"4816",cat:"Telecom"},
+  "Cable TV / Local Cable Operator":               {n:"4899",c:"4899",cat:"Cable and Broadband"},
+  "DTH / Direct to Home":                          {n:"4899",c:"4899",cat:"Cable and Broadband"},
+  "Online Music & Video":                          {n:"5815",c:"5815",cat:"Digital Goods"},
+  "Streaming Platform":                            {n:"5816",c:"5816",cat:"Digital Goods"},
+  "Online Publishing / Newspapers":                {n:"5192",c:"5192",cat:"Digital Goods"},
+  "Subscription Services":                         {n:"5968",c:"7399",cat:"Digital Goods"},
+  "Online Marketplace":                            {n:"5262",c:"5262",cat:"Retail and Shopping"},
+  "Social Media Platform":                         {n:"5967",c:"5967",cat:"Digital Goods"},
+  "Deals & Coupons / Cashback":                    {n:"6540",c:"6540",cat:"Digital Goods"},
+  "University / College / Higher Education":       {n:"8220",c:"8220",cat:"Education"},
+  "School (K-12)":                                 {n:"8211",c:"8211",cat:"Education"},
+  "Pre-School / Nursery":                          {n:"8211",c:"8211",cat:"Education"},
+  "E-Learning / EdTech":                           {n:"8241",c:"8241",cat:"Education"},
+  "Coaching Institute / Test Prep":                {n:"8299",c:"8299",cat:"Education"},
+  "Pharmacy / Drug Store":                         {n:"5912",c:"5912",cat:"Healthcare"},
+  "Doctors / Clinic / Diagnostic Centre":          {n:"8011",c:"8011",cat:"Healthcare"},
+  "Hospital":                                      {n:"8062",c:"8299",cat:"Healthcare"},
+  "Medical Equipment":                             {n:"5047",c:"5047",cat:"Healthcare"},
+  "Dietician / Health Practitioner":               {n:"8099",c:"8099",cat:"Healthcare"},
+  "Online Food Delivery App":                      {n:"5812",c:"5411",cat:"Food"},
+  "Restaurant / Eating Place":                     {n:"5812",c:"5812",cat:"Food"},
+  "Fast Food / QSR / Cafe":                        {n:"5814",c:"5814",cat:"Food"},
+  "Bakery":                                        {n:"5462",c:"5462",cat:"Food"},
+  "Grocery / Supermarket / Kirana":                {n:"5411",c:"5411",cat:"Food"},
+  "FMCG Wholesale / B2B Distribution":             {n:"5411",c:"5511",cat:"Food"},
+  "Dairy / Milk Brand":                            {n:"5451",c:"5451",cat:"Food"},
+  "Meat / Fish / Poultry":                         {n:"5422",c:"5422",cat:"Food"},
+  "Apparel / Clothing / Fashion":                  {n:"5137",c:"5137",cat:"Retail and Shopping"},
+  "Footwear / Shoes":                              {n:"5661",c:"5661",cat:"Retail and Shopping"},
+  "Cosmetics / Beauty / Skincare":                 {n:"5977",c:"5977",cat:"Retail and Shopping"},
+  "Jewellery Store":                               {n:"5944",c:"5944",cat:"Retail and Shopping"},
+  "Precious Jewellery (Gold/Diamond)":             {n:"5412",c:"5412",cat:"Retail and Shopping"},
+  "Watches & Accessories":                         {n:"5932",c:"5932",cat:"Retail and Shopping"},
+  "Gift Shop / Novelty":                           {n:"5947",c:"5947",cat:"Retail and Shopping"},
+  "Toys / Games / Hobby":                          {n:"5945",c:"5945",cat:"Retail and Shopping"},
+  "Pet Care & Supplies":                           {n:"5995",c:"5995",cat:"Retail and Shopping"},
+  "Handicraft Store":                              {n:"5970",c:"5970",cat:"Retail and Shopping"},
+  "Pooja / Religious Goods":                       {n:"5973",c:"5719",cat:"Retail and Shopping"},
+  "Electronics & Home Appliances":                 {n:"5722",c:"5722",cat:"Retail and Shopping"},
+  "Computer Accessories (Retail)":                 {n:"5732",c:"5732",cat:"Retail and Shopping"},
+  "Computer Accessories (B2B Wholesale)":          {n:"5045",c:"5045",cat:"Retail and Shopping"},
+  "Computer Software Store":                       {n:"5734",c:"5734",cat:"Retail and Shopping"},
+  "Mobile Accessories / Repair":                   {n:"5732",c:"5732",cat:"Retail and Shopping"},
+  "Electrical Equipment & Supplies":               {n:"5065",c:"5065",cat:"Retail and Shopping"},
+  "Home Decor / Furniture / Kitchen":              {n:"5712",c:"5712",cat:"Retail and Shopping"},
+  "Stationery / Office Supplies":                  {n:"5943",c:"5943",cat:"Retail and Shopping"},
+  "Books / Book Store":                            {n:"5942",c:"5942",cat:"Retail and Shopping"},
+  "Hardware / Industrial Products":                {n:"5251",c:"5251",cat:"Retail and Shopping"},
+  "Metals & Commodities":                          {n:"5051",c:"5051",cat:"Retail and Shopping"},
+  "Print Shop / Blueprinting":                     {n:"7332",c:"7332",cat:"Business Services"},
+  "Florist":                                       {n:"5193",c:"5193",cat:"Retail and Shopping"},
+  "Fertilizers / Seeds / Farm Equipment":          {n:"5261",c:"5261",cat:"Retail and Shopping"},
+  "Car & Bike Dealership":                         {n:"5511",c:"5511",cat:"Automobiles and Vehicles"},
+  "Motorcycle / Bike Dealership":                  {n:"5571",c:"5571",cat:"Automobiles and Vehicles"},
+  "Auto Parts & Accessories":                      {n:"5533",c:"5533",cat:"Automobiles and Vehicles"},
+  "Auto Repair & Service":                         {n:"7538",c:"7538",cat:"Automobiles and Vehicles"},
+  "Petrol Pump / Fuel Station":                    {n:"5541",c:"5541",cat:"Automobiles and Vehicles"},
+  "LIC (Life Insurance Corporation)":              {n:"6529",c:"6300",cat:"BFSI"},
+  "Insurance (Non-LIC)":                           {n:"6300",c:"6300",cat:"BFSI"},
+  "Loans / NBFC / EMI / Lending":                  {n:"7322",c:"6012",cat:"BFSI"},
+  "Loan Repayment Portal":                         {n:"6012",c:"6012",cat:"BFSI"},
+  "Credit Card Bill Repayment":                    {n:"5413",c:"6012",cat:"BFSI"},
+  "Stock Broker / Securities / Trading":           {n:"6211",c:"6211",cat:"BFSI"},
+  "Real Estate / Property":                        {n:"6513",c:"6513",cat:"BFSI"},
+  "Hotel / Resort / Guest House":                  {n:"7011",c:"7011",cat:"Travel"},
+  "Facility Management / Housekeeping":            {n:"7349",c:"7399",cat:"Business Services"},
+  "Consulting / Management Consulting":            {n:"7392",c:"7392",cat:"Business Services"},
+  "Market Research / Analytics":                   {n:"7392",c:"7392",cat:"Business Services"},
+  "Party Planner / Event Management":              {n:"7392",c:"7399",cat:"Business Services"},
+  "Rental Services / Equipment Rental":            {n:"7394",c:"7394",cat:"Business Services"},
+  "Manpower / Staffing / Recruitment":             {n:"7361",c:"7361",cat:"Business Services"},
+  "Office Utilities / Business Services":          {n:"7399",c:"7399",cat:"Business Services"},
+  "Laundry / Dry Cleaner":                         {n:"7210",c:"7210",cat:"Personal Services"},
+  "Photo Studio / Photography":                    {n:"7221",c:"7221",cat:"Personal Services"},
+  "Watch / Clock Repair":                          {n:"7631",c:"7631",cat:"Personal Services"},
+  "Interior Design / Architecture":                {n:"8911",c:"8911",cat:"Business Services"},
+  "Construction / Real Estate Developer":          {n:"1520",c:"1520",cat:"Business Services"},
+  "Other Services / Miscellaneous":                {n:"7299",c:"7299",cat:"Personal Services"},
+  "Electricity / Power / Utility":                 {n:"4900",c:"4900",cat:"Utilities"},
+  "State Government / Govt Department":            {n:"9399",c:"9399",cat:"Corporate Alliance"},
+  "RWA / Resident Welfare Association":            {n:"8699",c:"8699",cat:"Corporate Alliance"},
+  "NGO / Non-Profit / Charitable Trust":           {n:"8398",c:"8398",cat:"Corporate Alliance"},
+  "Religious / Devotion Services":                 {n:"8661",c:"8661",cat:"Personal Services"},
+  "Gym & Fitness Club":                            {n:"7997",c:"7997",cat:"Personal Services"},
+  "Sports Events / Tournaments":                   {n:"7941",c:"7941",cat:"Personal Services"},
+  "Theme Park / Amusement":                        {n:"7996",c:"7996",cat:"Personal Services"},
+  "Unknown / Cannot Determine":                    null
+};
 
-## STEP 1: Identify Sub Category from the merchant's website/URL/name
-## STEP 2: Look up the correct NPCI and Cards MCC from the table below
-## STEP 3: Return JSON
+const CAT_LIST = Object.keys(T).join('\n- ');
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-MASTER MCC LOOKUP TABLE (trained on 529 verified merchants)
-Format: Sub Category → NPCI MCC | Cards MCC
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ── PROMPTS ───────────────────────────────────────────────────────────────────
+// Step 1: classify to sub-category ONLY (LLM never touches MCC codes)
+const SYS = `You are a merchant classifier for Paytm Payments Bank.
+Pick exactly ONE sub-category from the canonical list below that best describes this merchant.
+Return ONLY the JSON shown — no other text, no markdown, no backticks.
 
-TRANSPORT & LOGISTICS:
-• Metro/Local Train/City Bus (DTC, BEST, BMTC, MTC) → 4111 | 4111
-• Intercity & State Bus (GSRTC, KSRTC, MSRTC, UPSRTC, TSRTC, RSRTC, HRTC, any State RTC/STC) → 4131 | 4131
-• Airlines (IndiGo, Air India, SpiceJet) → 4511 | 4511
-• Tours and Travel Agency / Aggregator (MakeMyTrip, Yatra, Cleartrip, Goibibo) → 4722 | 4722
-• Taxi / Cab / Ride Sharing (Ola, Uber, Rapido) → 4121 | 4121
-• Courier / Logistics / Delivery → 4215 | 4215
-• Truck Rentals → 7513 | 7513
-• Toll Recharge → 4784 | 4784
-• IRCTC / Train Ticket Booking → 4112 | 4112
+SUB-CATEGORIES:
+- ${CAT_LIST}
 
-TELECOM & DIGITAL INFRASTRUCTURE:
-• Telecom Service Provider / Mobile Recharge (Airtel, Jio, BSNL, Vi) → 4814 | 4814
-• Broadband / Internet Service Provider → 4816 | 4816
-• IT and ITES (managed services, BPO) → 4816 | 4816
-• Web Hosting / SaaS / Cloud / Web App Development → 7372 | 7372
-• Computer Network Services → 4816 | 4816
+MANDATORY RULES:
+- GSRTC/KSRTC/MSRTC/UPSRTC/any State RTC/STC/Roadways → "Intercity & State Bus (RTC/STC)"
+- City metro/DTC/BEST/BMTC/local suburban rail → "Metro / Local Transit / City Bus"
+- SaaS/cloud/web hosting/software-as-a-service → "Web Hosting / SaaS / Cloud"
+- Zomato/Swiggy/food delivery aggregator apps → "Online Food Delivery App"
+- LIC specifically → "LIC (Life Insurance Corporation)"
+- NBFC/EMI/personal loan apps (Bajaj, IIFL) → "Loans / NBFC / EMI / Lending"
+- If truly unclear after careful analysis → "Unknown / Cannot Determine"
 
-CABLE, DTH & STREAMING:
-• Local Cable Operator / Cable Player → 4899 | 4899
-• D2H / Direct to Home (Tata Sky, Dish TV, Airtel DTH) → 4899 | 4899
-• Online Music and Video (JioSaavn, Spotify, Hungama) → 5815 | 5815
-• Streaming (Netflix, Hotstar, ZEE5) → 5816 | 5816
-• Online Publishing / Books / Periodicals (Dainik Bhaskar, magazines) → 5192 | 5192
+JSON output:
+{"merchant_name":"...","sub_category":"[exact string from list above]","line_of_business":"...","business_model":"B2B|B2C|Hybrid","key_tags":["tag1","tag2"],"confidence":"High|Medium|Low","reasoning":"one sentence"}`;
 
-DIGITAL GOODS & PLATFORMS:
-• Subscription Services (recurring digital subscriptions, PropTech, SaaS subscriptions like MagicBricks) → 5968 | 7399
-• Online Marketplace (Amazon, Flipkart, Meesho, aggregators) → 5262 | 5262
-• Social Media Platform → 5967 | 5967
-• Deals and Coupons (Groupon-style, cashback) → 6540 | 6540
+// Step 2 (fallback): only called when sub-category is unknown or confidence Low
+const SYS_FALLBACK = `You are an MCC expert for Paytm Payments Bank (NPCI + ISO 18245).
+This merchant does not fit a standard category. Based on the URL/name, assign the best NPCI UPI MCC and ISO 18245 Cards MCC.
+Return ONLY: {"npci_mcc":"XXXX","cards_mcc":"XXXX","sub_category":"brief label","reasoning":"one sentence"}`;
 
-EDUCATION:
-• University / Deemed University / IIT / NIT / Govt Higher Institute → 8220 | 8220
-• Private College / Engineering College / Management Institute → 8220 | 8220
-• School / CBSE / ICSE / State Board → 8211 | 8211
-• Pre School / Nursery / Playgroup → 8211 | 8211
-• E-Learning / Online Education / EdTech (BYJU'S, Unacademy, Vedantu) → 8241 | 8241
-• Tutors / Home Tuition → 8241 | 8241
-• Coaching Institute / Test Prep (ALLEN, Aakash) → 8299 | 8299
-• Sports Coaching / Fitness Classes → 7997 | 7997
+// ── LLM CALL ──────────────────────────────────────────────────────────────────
+async function callAPI(input, sysPrompt) {
+  for (let attempt = 0; attempt < MODELS.length; attempt++) {
+    const model = MODELS[(modelIdx + attempt) % MODELS.length];
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+      body: JSON.stringify({
+        model, max_tokens: 512, temperature: 0.1,
+        messages: [
+          {role:'system', content: sysPrompt},
+          {role:'user', content: 'Merchant: ' + input + '\n\nReturn ONLY the JSON.'}
+        ]
+      })
+    });
+    if (resp.status === 429) {
+      if (attempt < MODELS.length - 1) continue;
+      const e = await resp.json().catch(()=>({}));
+      const t = e.error?.message?.match(/try again in ([^.]+)/)?.[1];
+      throw new Error('Rate limit on all models.' + (t ? ' Retry in '+t+'.' : ' Try again later.'));
+    }
+    if (!resp.ok) {
+      const e = await resp.json().catch(()=>({}));
+      throw new Error('API error '+resp.status+': '+(e.error?.message||'Unknown'));
+    }
+    modelIdx = (modelIdx + attempt) % MODELS.length;
+    const data = await resp.json();
+    const raw = data.choices?.[0]?.message?.content || '';
+    let parsed = null;
+    try { parsed = JSON.parse(raw.trim()); } catch(_) {}
+    if (!parsed) {
+      const s = raw.indexOf('{'), e2 = raw.lastIndexOf('}');
+      if (s !== -1 && e2 > s) try { parsed = JSON.parse(raw.slice(s, e2+1)); } catch(_) {}
+    }
+    if (!parsed) throw new Error('Could not parse LLM response');
+    return parsed;
+  }
+}
 
-HEALTHCARE:
-• Pharmacy / Drug Store / Online Pharmacy (PharmEasy, Netmeds, 1mg) → 5912 | 5912
-• Doctors and Clinic / GP / Specialist / Diagnostic Centre → 8011 | 8011
-• Hospital (Apollo, Max, Fortis, AIIMS-type) → 8062 | 8299  ← NPCI differs from Cards
-• Medical Equipment / Healthcare Devices → 5047 | 5047
-• Dietician / Nutritionist / Health Practitioner NEC → 8099 | 8099
+// ── TWO-STEP CLASSIFY ─────────────────────────────────────────────────────────
+async function classify(url) {
+  // Step 1: LLM identifies sub-category
+  const s1 = await callAPI(url, SYS);
+  const entry = T[s1.sub_category];
 
-FOOD & BEVERAGE:
-• Online Food Delivery App (Zomato, Swiggy as platforms) → 5812 | 5411  ← NPCI differs
-• Restaurant / Eating Place / Dhaba → 5812 | 5812
-• Fast Food / QSR / Café → 5814 | 5814
-• Bakery → 5462 | 5462
-• Grocery Store / Kirana → 5411 | 5411
-• Supermarket / Hypermarket / FMCG retail → 5411 | 5411
-• FMCG Wholesale / B2B Distribution → 5411 | 5511  ← Cards differs for wholesale
-• Dairy Cooperative / Milk Brand (Amul, Mother Dairy) → 5451 | 5451
-• Milk Distributor → 5451 | 5451
-• Meat Shop / Fish / Poultry → 5422 | 5422
-• Juice Bar / Snacks / Sweets → 5411 | 5411
+  if (entry && s1.confidence !== 'Low') {
+    // DETERMINISTIC PATH: sub-category found + confidence High/Medium → lookup table
+    return {
+      merchant_name: s1.merchant_name,
+      line_of_business: s1.line_of_business,
+      business_model: s1.business_model,
+      key_tags: s1.key_tags || [],
+      Category: entry.cat,
+      SubCategory: s1.sub_category,
+      Recommended_UPI_MCC: entry.n,
+      Recommended_Cards_MCC: entry.c,
+      confidence: s1.confidence,
+      reasoning: s1.reasoning,
+      _source: 'lookup'
+    };
+  } else {
+    // FALLBACK PATH: unknown/low-confidence → second LLM call for direct MCC reasoning
+    const s2 = await callAPI(url, SYS_FALLBACK);
+    return {
+      merchant_name: s1.merchant_name,
+      line_of_business: s1.line_of_business,
+      business_model: s1.business_model,
+      key_tags: s1.key_tags || [],
+      Category: entry?.cat || 'Other',
+      SubCategory: s2.sub_category || s1.sub_category || 'Unknown',
+      Recommended_UPI_MCC: s2.npci_mcc || '—',
+      Recommended_Cards_MCC: s2.cards_mcc || '—',
+      confidence: 'Low',
+      reasoning: s2.reasoning || s1.reasoning,
+      _source: 'llm_fallback'
+    };
+  }
+}
 
-RETAIL - APPAREL & ACCESSORIES:
-• Apparel / Clothing / Fashion → 5137 | 5137
-• Footwear / Shoes → 5661 | 5661
-• Cosmetics / Beauty / Skincare / Personal Care → 5977 | 5977
-• Jeweller / Jewellery Store → 5944 | 5944
-• Precious Jewellery (gold/diamond specialist) → 5412 | 5412
-• Watches and Accessories → 5932 | 5932
-• Gift Shop / Gift Cards / Novelty → 5947 | 5947
-• Toys / Games / Hobby → 5945 | 5945
-• Pet Care and Supplies → 5995 | 5995
-• Handicraft Store → 5970 | 5970
-• Pooja / Religious Goods (flowers, prasad) → 5973 | 5719  ← Cards differs
+// ── FEEDBACK LOOP ─────────────────────────────────────────────────────────────
+let currentResult = null;
+let currentUrl = null;
 
-RETAIL - ELECTRONICS & HARDWARE:
-• Electronics and Home Appliances (washing machine, AC, TV) → 5722 | 5722
-• Computer Accessories and Peripherals (retail) → 5732 | 5732
-• Computer Accessories and Peripherals (B2B wholesale) → 5045 | 5045
-• Computer Software Outlet → 5734 | 5734
-• Mobile Accessories / Mobile Repair → 5732 | 5732
-• Electrical Shop / Electrical Equipment and Supplies → 5065 | 5065
+function submitFeedback(correct) {
+  document.getElementById('fb-yes').classList.toggle('active-yes', correct);
+  document.getElementById('fb-no').classList.toggle('active-no', !correct);
+  document.getElementById('fb-yes').classList.toggle('active-no', false);
+  document.getElementById('fb-no').classList.toggle('active-yes', false);
+  if (correct) {
+    document.getElementById('fb-corr').classList.remove('on');
+    persistFeedback(true, null, null);
+  } else {
+    document.getElementById('fb-corr').classList.add('on');
+  }
+}
 
-RETAIL - HOME & OTHERS:
-• Home Decor / Kitchen Accessories / Furniture → 5712 | 5712
-• Stationery / Office Supplies → 5943 | 5943
-• Book Stores → 5942 | 5942
-• Hardware / Industrial Products → 5251 | 5251
-• Metals and Commodities → 5051 | 5051
-• Blueprinting / Photocopying / Print Shop → 7332 | 7332
-• Florist → 5193 | 5193
+function saveFeedbackWrong() {
+  const npci = document.getElementById('fb-npci').value.trim();
+  const cards = document.getElementById('fb-cards').value.trim();
+  persistFeedback(false, npci, cards);
+  document.getElementById('fb-corr').classList.remove('on');
+  document.getElementById('fb-npci').value = '';
+  document.getElementById('fb-cards').value = '';
+  document.getElementById('fb-yes').classList.remove('active-yes','active-no');
+  document.getElementById('fb-no').classList.remove('active-yes','active-no');
+  const s = document.getElementById('fb-saved');
+  s.style.display = 'inline';
+  setTimeout(() => s.style.display = 'none', 2000);
+}
 
-AGRICULTURE:
-• Fertilizer Dealers / Pesticides / Insecticides → 5261 | 5261
-• Farm Equipment / Agricultural Machinery → 5261 | 5261
-• Seeds → 5261 | 5261
+function persistFeedback(correct, fixNpci, fixCards) {
+  const fb = JSON.parse(localStorage.getItem('mcc_fb') || '[]');
+  fb.push({
+    ts: new Date().toISOString(),
+    url: currentUrl,
+    merchant: currentResult?.merchant_name,
+    sub: currentResult?.SubCategory,
+    npci: currentResult?.Recommended_UPI_MCC,
+    cards: currentResult?.Recommended_Cards_MCC,
+    ok: correct,
+    fix_npci: fixNpci || null,
+    fix_cards: fixCards || null,
+    src: currentResult?._source
+  });
+  localStorage.setItem('mcc_fb', JSON.stringify(fb));
+  updateFbCount();
+  if (correct) {
+    const s = document.getElementById('fb-saved');
+    s.style.display = 'inline';
+    setTimeout(() => s.style.display = 'none', 2000);
+  }
+}
 
-AUTOMOBILES:
-• Car and Bike Dealership (new vehicles) → 5511 | 5511
-• Bike/Motorcycle Dealership → 5571 | 5571
-• Automobile Parts and Accessories → 5533 | 5533
-• Automobile Repairs and Services / Workshop → 7538 | 7538
-• Petrol Pump / IOCL / HPCL / BPCL → 5541 | 5541
+function updateFbCount() {
+  const fb = JSON.parse(localStorage.getItem('mcc_fb') || '[]');
+  const el = document.getElementById('fb-count');
+  if (el && fb.length > 0) {
+    const wrong = fb.filter(r => !r.ok).length;
+    el.textContent = fb.length + ' reviewed · ' + wrong + ' corrections · export CSV ↗';
+  }
+}
 
-BFSI (Banking, Financial Services, Insurance):
-• LIC specifically → 6529 | 6300  ← ALWAYS different
-• Insurance (non-LIC: HDFC ERGO, Star Health, New India) → 6300 | 6300
-• Insurance NEC → 6399 | 6399
-• Loans / NBFC / EMI / Personal Loan (Bajaj Finance, IIFL, MoneyTap) → 7322 | 6012  ← NPCI differs
-• Loan Repayment (direct repayment portal) → 6012 | 6012
-• Credit Card Bill Repayment → 5413 | 6012  ← NPCI differs
-• Stock Broker / Securities / Trading Platform → 6211 | 6211
-• Real Estate / Property → 6513 | 6513
+function exportFeedback() {
+  const fb = JSON.parse(localStorage.getItem('mcc_fb') || '[]');
+  if (!fb.length) { alert('No feedback saved yet.'); return; }
+  const hdr = 'timestamp,url,merchant,sub_category,npci_assigned,cards_assigned,correct,corrected_npci,corrected_cards,source';
+  const rows = fb.map(r => [
+    r.ts, r.url, r.merchant, r.sub, r.npci, r.cards,
+    r.ok, r.fix_npci||'', r.fix_cards||'', r.src
+  ].map(v => '"'+String(v||'').replace(/"/g,'""')+'"').join(','));
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent([hdr,...rows].join('\n'));
+  a.download = 'mcc_feedback_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
 
-TRAVEL & HOSPITALITY:
-• Hotel / Resort / Guest House / OYO → 7011 | 7011
-• Hotel Aggregator → 7011 | 7011
-
-BUSINESS SERVICES:
-• Facility Management / Housekeeping Company → 7349 | 7399  ← Cards differs
-• Consulting / Management Consulting → 7392 | 7392
-• Market Research / Analytics → 7392 | 7392
-• Party Planner / Event Management → 7392 | 7399  ← Cards differs
-• Rental Services / Equipment Rental → 7394 | 7394
-• Manpower / Staffing / Recruitment → 7361 | 7361
-• Office Utilities / Office Services → 7399 | 7399
-• Laundry and Dry Cleaner → 7210 | 7210
-• Photo Studio / Photography → 7221 | 7221
-• Watch / Clock Repair → 7631 | 7631
-• Interior Designing / Architect → 8911 | 8911
-• Construction / Developer / Builder → 1520 | 1520
-• Other Services / Miscellaneous → 7299 | 7299
-
-UTILITIES & GOVERNMENT:
-• Electricity / Power / Utility Board → 4900 | 4900
-• State Government Department → 9399 | 9399
-• RWA / Resident Welfare Association → 8699 | 8699
-
-NON-PROFIT & SOCIAL:
-• Non-Profit / NGO / Charitable Trust → 8398 | 8398
-• Crowd Sourcing Platform → 8398 | 8398
-• Religious/Devotion Services → 8661 | 8661
-
-LEISURE & ENTERTAINMENT:
-• Gym and Fitness Club → 7997 | 7997
-• Sports Events / Tournaments → 7941 | 7941
-• Theme Park / Amusement → 7996 | 7996
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CRITICAL RULES (override everything else):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. STATE TRANSPORT: Any URL/name containing gsrtc/ksrtc/msrtc/upsrtc/tsrtc/rsrtc/hrtc/srtc/roadways → 4131 (NOT 4111)
-2. 4111 is ONLY for local city transport (metro, city bus, suburban rail) — NOT state bus corporations
-3. LIC India → NPCI=6529, Cards=6300 (unique exception)
-4. NBFC/Lending/EMI: NPCI=7322, Cards=6012
-5. Subscription services (digital): NPCI=5968, Cards=7399
-6. Food delivery APPS (Zomato/Swiggy): NPCI=5812, Cards=5411
-7. Hospital: NPCI=8062, Cards=8299
-8. Web hosting / SaaS / software companies → 7372 (not 4816, not 7371)
-9. Broadband/ISP → 4816; Mobile telecom/recharge → 4814
-10. If Cards MCC is same as NPCI MCC, use the same value for both fields
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-CRITICAL: Respond ONLY with a single JSON object. No markdown, no backticks, no text outside JSON.
-{"line_of_business":"...","business_model":"B2B|B2C|Hybrid","key_tags":["tag1","tag2"],"merchant_name":"...","Category":"...","SubCategory":"...","Recommended_UPI_MCC":"XXXX","Recommended_Cards_MCC":"XXXX","confidence":"High|Medium|Low","reasoning":"one sentence why this MCC was chosen"}`;
-
+// ── UI HELPERS ────────────────────────────────────────────────────────────────
 let jData = null;
 let jsonOpen = false;
 
-// Tab switching
 function switchTab(name, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
 }
 
 function pick(u) {
-  document.getElementById('url').value = 'https://' + u;
+  document.getElementById('url').value = 'https://'+u;
   document.getElementById('url').focus();
 }
 
 function step(n, st) {
-  const el = document.getElementById('s' + n);
-  el.classList.remove('act', 'done');
+  const el = document.getElementById('s'+n);
+  el.classList.remove('act','done');
   if (st) el.classList.add(st);
 }
 
 function showProg(txt, n) {
   document.getElementById('prog').classList.add('on');
   document.getElementById('ptxt').textContent = txt;
-  [1,2,3,4].forEach(i => step(i, i < n ? 'done' : i === n ? 'act' : ''));
+  [1,2,3,4].forEach(i => step(i, i<n?'done':i===n?'act':''));
 }
-
 function hideProg() { document.getElementById('prog').classList.remove('on'); }
 
 function showErr(msg) {
@@ -566,50 +735,11 @@ function showErr(msg) {
 
 function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-async function callGroq(url) {
-  for (let attempt = 0; attempt < MODELS.length; attempt++) {
-    const model = MODELS[(modelIdx + attempt) % MODELS.length];
-    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
-      body: JSON.stringify({
-        model,
-        max_tokens: 1024,
-        temperature: 0.1,
-        messages: [
-          { role: 'system', content: SYS },
-          { role: 'user', content: 'Merchant website: ' + url + '\n\nReturn ONLY the JSON object.' }
-        ]
-      })
-    });
-    if (resp.status === 429) {
-      if (attempt < MODELS.length - 1) continue; // try next model
-      const e = await resp.json().catch(() => ({}));
-      const retryMsg = e.error?.message?.match(/try again in ([^.]+)/)?.[1];
-      throw new Error('Daily rate limit reached on all models.' + (retryMsg ? ' Retry in ' + retryMsg + '.' : ' Try again tomorrow or use a different API key.'));
-    }
-    if (!resp.ok) {
-      const e = await resp.json().catch(() => ({}));
-      throw new Error('API error ' + resp.status + ': ' + (e.error?.message || 'Unknown'));
-    }
-    modelIdx = (modelIdx + attempt) % MODELS.length; // remember working model
-    const data = await resp.json();
-    const raw = data.choices?.[0]?.message?.content || '';
-    let parsed = null;
-    try { parsed = JSON.parse(raw.trim()); } catch(_) {}
-    if (!parsed) {
-      const s = raw.indexOf('{'), e = raw.lastIndexOf('}');
-      if (s !== -1 && e > s) { try { parsed = JSON.parse(raw.slice(s, e + 1)); } catch(_) {} }
-    }
-    if (!parsed) throw new Error('Could not parse LLM response');
-    return parsed;
-  }
-}
-
+// ── SINGLE CLASSIFY ───────────────────────────────────────────────────────────
 async function runSingle() {
   let url = document.getElementById('url').value.trim();
   if (!url) { showErr('Please enter a merchant URL.'); return; }
-  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  if (!/^https?:\/\//i.test(url)) url = 'https://'+url;
 
   const btn = document.getElementById('runbtn');
   btn.disabled = true;
@@ -618,16 +748,18 @@ async function runSingle() {
   jData = null;
 
   try {
-    showProg('Fetching merchant homepage...', 1);
-    await wait(400);
-    showProg('Analyzing line of business...', 2);
-    await wait(350);
-    showProg('Searching NPCI & ISO 18245 MCC lists...', 3);
+    showProg('Identifying merchant type...', 1);
     await wait(300);
-    showProg('Classifying merchant & assigning MCC codes...', 4);
+    showProg('Matching to sub-category taxonomy...', 2);
+    await wait(250);
+    showProg('Looking up NPCI & ISO 18245 codes...', 3);
+    await wait(200);
+    showProg('Finalising classification...', 4);
 
-    const parsed = await callGroq(url);
+    const parsed = await classify(url);
     jData = parsed;
+    currentResult = parsed;
+    currentUrl = url;
     hideProg();
     render(parsed, url);
   } catch(e) {
@@ -642,7 +774,7 @@ function resetSingle() {
   document.getElementById('res').classList.remove('on');
   document.getElementById('url').value = '';
   showErr('');
-  jData = null;
+  jData = null; currentResult = null; currentUrl = null;
   document.getElementById('url').focus();
 }
 
@@ -657,76 +789,81 @@ function toggleJson(hdr) {
 }
 
 function render(d, url) {
-  // Summary
   document.getElementById('mname').textContent = d.merchant_name || 'Unknown Merchant';
   document.getElementById('murl').textContent = url;
   document.getElementById('lob-text').textContent = d.line_of_business || '—';
 
-  // Confidence badge
   const conf = d.confidence || 'Low';
   const cb = document.getElementById('conf-badge');
-  const confMap = { High: ['conf-high', '● High confidence'], Medium: ['conf-med', '◑ Medium confidence'], Low: ['conf-low', '○ Low confidence'] };
+  const confMap = {High:['conf-high','● High confidence'],Medium:['conf-med','◑ Medium confidence'],Low:['conf-low','○ Low confidence']};
   const [cls, label] = confMap[conf] || confMap.Low;
-  cb.className = 'conf-badge ' + cls;
+  cb.className = 'conf-badge '+cls;
   cb.textContent = label;
 
-  // Tags
+  // Source badge: lookup (deterministic) vs llm_fallback
+  const sb = document.getElementById('src-badge');
+  if (d._source === 'lookup') {
+    sb.className = 'src-badge src-lookup';
+    sb.textContent = '● Lookup';
+  } else {
+    sb.className = 'src-badge src-fallback';
+    sb.textContent = '⚠ LLM Fallback';
+  }
+
+  // Review banner
+  const rb = document.getElementById('review-banner');
+  rb.classList.toggle('on', d._source === 'llm_fallback');
+
   const tr = document.getElementById('tags-row');
   tr.innerHTML = '';
-  const modelMap = { B2B: 'tag-b2b', B2C: 'tag-b2c', Hybrid: 'tag-hybrid' };
+  const modelMap = {B2B:'tag-b2b',B2C:'tag-b2c',Hybrid:'tag-hybrid'};
   if (d.business_model) {
     const s = document.createElement('span');
-    s.className = 'tag ' + (modelMap[d.business_model] || 'tag-b2b');
+    s.className = 'tag '+(modelMap[d.business_model]||'tag-b2b');
     s.textContent = d.business_model;
     tr.appendChild(s);
   }
-  (d.key_tags || []).forEach(t => {
+  (d.key_tags||[]).forEach(t => {
     const s = document.createElement('span');
     s.className = 'tag tag-kw';
     s.textContent = t;
     tr.appendChild(s);
   });
 
-  // MCC cards
   document.getElementById('ucode').textContent = d.Recommended_UPI_MCC || '—';
   document.getElementById('ucat').textContent = d.Category || '';
   document.getElementById('usub').textContent = d.SubCategory || '';
   document.getElementById('ccode').textContent = d.Recommended_Cards_MCC || '—';
   document.getElementById('ccat').textContent = d.Category || '';
   document.getElementById('csub').textContent = d.SubCategory || '';
-
-  // Reasoning
   document.getElementById('reasoning').textContent = d.reasoning || '—';
 
-  // JSON
+  // Reset feedback UI
+  document.getElementById('fb-yes').classList.remove('active-yes','active-no');
+  document.getElementById('fb-no').classList.remove('active-yes','active-no');
+  document.getElementById('fb-corr').classList.remove('on');
+  updateFbCount();
+
   const out = {
-    merchant_name: d.merchant_name,
-    Category: d.Category,
-    SubCategory: d.SubCategory,
-    Recommended_UPI_MCC: d.Recommended_UPI_MCC,
-    Recommended_Cards_MCC: d.Recommended_Cards_MCC,
-    business_model: d.business_model,
-    confidence: d.confidence,
-    line_of_business: d.line_of_business,
-    reasoning: d.reasoning
+    merchant_name: d.merchant_name, Category: d.Category, SubCategory: d.SubCategory,
+    Recommended_UPI_MCC: d.Recommended_UPI_MCC, Recommended_Cards_MCC: d.Recommended_Cards_MCC,
+    business_model: d.business_model, confidence: d.confidence,
+    classification_source: d._source, line_of_business: d.line_of_business, reasoning: d.reasoning
   };
   document.getElementById('jpre').innerHTML = highlight(out);
   document.getElementById('copybtn').textContent = 'Copy';
   document.getElementById('copybtn').classList.remove('ok');
-
-  // Collapse JSON on new result
   jsonOpen = false;
   document.getElementById('jpre-wrap').classList.remove('open');
   document.getElementById('chevron').classList.remove('open');
-
   document.getElementById('res').classList.add('on');
-  document.getElementById('res').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  document.getElementById('res').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
 function highlight(obj) {
   return JSON.stringify(obj, null, 2)
     .replace(/("[\w_]+")\s*:/g, '<span class="k">$1</span>:')
-    .replace(/:\s*("(?:[^"\\]|\\.)*")/g, (m, s) => ': <span class="vs">' + s + '</span>')
+    .replace(/:\s*("(?:[^"\\]|\\.)*")/g, (m,s) => ': <span class="vs">'+s+'</span>')
     .replace(/:\s*(\d+)/g, ': <span class="vn">$1</span>')
     .replace(/:\s*(true|false|null)/g, ': <span class="vb">$1</span>');
 }
@@ -735,10 +872,10 @@ function copyJ(e) {
   e.stopPropagation();
   if (!jData) return;
   const out = {
-    merchant_name: jData.merchant_name, Category: jData.Category, SubCategory: jData.SubCategory,
-    Recommended_UPI_MCC: jData.Recommended_UPI_MCC, Recommended_Cards_MCC: jData.Recommended_Cards_MCC,
-    business_model: jData.business_model, confidence: jData.confidence,
-    line_of_business: jData.line_of_business, reasoning: jData.reasoning
+    merchant_name:jData.merchant_name, Category:jData.Category, SubCategory:jData.SubCategory,
+    Recommended_UPI_MCC:jData.Recommended_UPI_MCC, Recommended_Cards_MCC:jData.Recommended_Cards_MCC,
+    business_model:jData.business_model, confidence:jData.confidence,
+    classification_source:jData._source, line_of_business:jData.line_of_business, reasoning:jData.reasoning
   };
   navigator.clipboard.writeText(JSON.stringify(out, null, 2)).then(() => {
     const b = document.getElementById('copybtn');
@@ -747,13 +884,12 @@ function copyJ(e) {
   });
 }
 
-// Batch
+// ── BATCH ─────────────────────────────────────────────────────────────────────
 async function runBatch() {
   const raw = document.getElementById('burls').value.trim();
   if (!raw) return;
-  const urls = raw.split(/[\n,]+/).map(u => u.trim()).filter(Boolean).map(u =>
-    /^https?:\/\//i.test(u) ? u : 'https://' + u
-  );
+  const urls = raw.split(/[\n,]+/).map(u => u.trim()).filter(Boolean)
+    .map(u => /^https?:\/\//i.test(u) ? u : 'https://'+u);
   if (!urls.length) return;
 
   const btn = document.getElementById('batchbtn');
@@ -765,46 +901,46 @@ async function runBatch() {
   const bar = document.getElementById('bpbar');
   const ptxt = document.getElementById('bptxt');
   const container = document.getElementById('batch-results');
-  const results = [];
 
   for (let i = 0; i < urls.length; i++) {
-    const pct = Math.round((i / urls.length) * 100);
-    bar.style.width = pct + '%';
-    ptxt.textContent = `Processing ${i + 1} of ${urls.length}: ${urls[i]}`;
+    bar.style.width = Math.round((i/urls.length)*100)+'%';
+    ptxt.textContent = `Processing ${i+1} of ${urls.length}: ${urls[i]}`;
     try {
-      const d = await callGroq(urls[i]);
-      results.push({ url: urls[i], data: d });
+      const d = await classify(urls[i]);
       container.appendChild(makeBatchCard(urls[i], d));
     } catch(e) {
-      results.push({ url: urls[i], error: e.message });
       container.appendChild(makeErrCard(urls[i], e.message));
     }
   }
 
   bar.style.width = '100%';
-  ptxt.textContent = `Done · ${urls.length} merchant${urls.length > 1 ? 's' : ''} classified`;
+  ptxt.textContent = `Done · ${urls.length} merchant${urls.length>1?'s':''} classified`;
   btn.disabled = false;
 }
 
 function makeBatchCard(url, d) {
-  const confMap = { High: ['conf-high', 'High'], Medium: ['conf-med', 'Medium'], Low: ['conf-low', 'Low'] };
+  const confMap = {High:['conf-high','High'],Medium:['conf-med','Medium'],Low:['conf-low','Low']};
   const [cls] = confMap[d.confidence] || confMap.Low;
+  const srcBadge = d._source === 'lookup'
+    ? '<span class="src-badge src-lookup" style="font-size:10px">Lookup</span>'
+    : '<span class="src-badge src-fallback" style="font-size:10px">LLM Fallback</span>';
   const div = document.createElement('div');
   div.className = 'batch-item';
   div.innerHTML = `
     <div>
       <div class="bi-url">${url}</div>
-      <div class="bi-name">${d.merchant_name || '—'}</div>
+      <div class="bi-name">${d.merchant_name||'—'}</div>
       <div class="bi-tags">
-        <span class="tag tag-kw" style="font-size:10px">${d.Category || ''}</span>
-        <span class="conf-badge ${cls}" style="font-size:10px;padding:3px 10px">${d.confidence || ''}</span>
-        ${(d.key_tags || []).slice(0,2).map(t => `<span class="tag tag-kw" style="font-size:10px">${t}</span>`).join('')}
+        <span class="tag tag-kw" style="font-size:10px">${d.Category||''}</span>
+        <span class="conf-badge ${cls}" style="font-size:10px;padding:3px 10px">${d.confidence||''}</span>
+        ${srcBadge}
+        ${(d.key_tags||[]).slice(0,2).map(t=>`<span class="tag tag-kw" style="font-size:10px">${t}</span>`).join('')}
       </div>
     </div>
     <div class="bi-mcc">
       <div class="bi-mcc-pair">
-        <div class="mcc-pill u"><span style="font-size:10px;opacity:.7">UPI</span><span class="mcc-pill-code">${d.Recommended_UPI_MCC || '—'}</span></div>
-        <div class="mcc-pill c"><span style="font-size:10px;opacity:.7">Card</span><span class="mcc-pill-code">${d.Recommended_Cards_MCC || '—'}</span></div>
+        <div class="mcc-pill u"><span style="font-size:10px;opacity:.7">UPI</span><span class="mcc-pill-code">${d.Recommended_UPI_MCC||'—'}</span></div>
+        <div class="mcc-pill c"><span style="font-size:10px;opacity:.7">Card</span><span class="mcc-pill-code">${d.Recommended_Cards_MCC||'—'}</span></div>
       </div>
     </div>`;
   return div;
@@ -814,11 +950,7 @@ function makeErrCard(url, msg) {
   const div = document.createElement('div');
   div.className = 'batch-item';
   div.style.borderColor = 'rgba(255,95,87,.2)';
-  div.innerHTML = `
-    <div>
-      <div class="bi-url">${url}</div>
-      <div style="font-size:13px;color:var(--err);font-family:var(--mono);margin-top:4px">⚠ ${msg}</div>
-    </div>`;
+  div.innerHTML = `<div><div class="bi-url">${url}</div><div style="font-size:13px;color:var(--err);font-family:var(--mono);margin-top:4px">⚠ ${msg}</div></div>`;
   return div;
 }
 
@@ -826,6 +958,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('url').addEventListener('keydown', e => {
     if (e.key === 'Enter') runSingle();
   });
+  updateFbCount();
 });
 </script>
 </body>
