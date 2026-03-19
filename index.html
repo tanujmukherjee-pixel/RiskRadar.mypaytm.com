@@ -164,6 +164,37 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
 /* Footer */
 .foot{text-align:center;font-size:12px;font-family:var(--mono);color:var(--mu);margin-top:48px;opacity:.4;line-height:2}
 
+/* Provider pill + gear */
+.hdr-right{display:flex;align-items:center;gap:8px}
+.provider-pill{font-size:11px;font-family:var(--mono);padding:5px 12px;border-radius:20px;display:flex;align-items:center;gap:6px;white-space:nowrap;cursor:pointer;transition:all .2s}
+.provider-pill .pdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.pill-gemini{background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25);color:#a5b4fc}
+.pill-gemini .pdot{background:#a5b4fc}
+.pill-groq{background:var(--acc-d);border:1px solid rgba(0,229,180,.2);color:var(--acc)}
+.pill-groq .pdot{background:var(--acc)}
+.gear-btn{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;color:var(--mu);flex-shrink:0}
+.gear-btn:hover{border-color:var(--bdr2);color:var(--tx)}
+.gear-btn.open{border-color:rgba(0,229,180,.35);color:var(--acc);background:var(--acc-g)}
+/* Settings panel */
+.settings-panel{background:var(--surf);border:1px solid var(--bdr2);border-radius:var(--rxl);padding:24px 28px;margin-bottom:24px;display:none}
+.settings-panel.on{display:block;animation:fadeIn .15s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.set-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mu);font-family:var(--mono);margin-bottom:20px}
+.set-row{margin-bottom:18px}
+.set-label{font-size:11px;font-family:var(--mono);color:var(--mu);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.set-hint{font-size:11px;font-family:var(--mono);color:var(--mu);margin-top:6px;line-height:1.7}
+.set-hint a{color:var(--acc);text-decoration:none}.set-hint a:hover{text-decoration:underline}
+.key-wrap{position:relative}
+.key-wrap input{width:100%;padding-right:44px;font-family:var(--mono);font-size:13px}
+.key-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--mu);padding:4px}
+.key-eye:hover{color:var(--tx)}
+.set-footer{display:flex;align-items:center;justify-content:space-between;padding-top:16px;border-top:1px solid var(--bdr);flex-wrap:wrap;gap:8px}
+.set-save{background:var(--acc);color:#000;border:none;border-radius:var(--rl);padding:9px 20px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
+.set-save:hover{opacity:.88}
+.set-clear{background:none;border:1px solid var(--bdr);color:var(--mu);border-radius:var(--rl);padding:8px 14px;font-family:var(--mono);font-size:12px;cursor:pointer;transition:all .2s}
+.set-clear:hover{border-color:var(--err);color:var(--err)}
+.set-status{font-size:11px;font-family:var(--mono);color:var(--ok)}
+
 /* Batch progress */
 .batch-prog{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);padding:16px 20px;margin-bottom:16px;display:none}
 .batch-prog.on{display:block}
@@ -212,7 +243,52 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
       <div class="sub">Paytm Risk &amp; Compliance · MCC Identifier</div>
     </div>
   </div>
-  <div class="badge">NPCI + ISO 18245</div>
+  <div class="hdr-right">
+    <div class="provider-pill pill-groq" id="provider-pill" onclick="toggleSettings()">
+      <div class="pdot"></div><span id="provider-label">Groq · llama-3.1</span>
+    </div>
+    <button class="gear-btn" id="gear-btn" onclick="toggleSettings()" title="API Settings">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" stroke="currentColor" stroke-width="1.3"/><path d="M13.3 8a5.12 5.12 0 0 0-.06-.78l1.47-1.15-1.4-2.42-1.8.72A5 5 0 0 0 10.17 3.4L10 1.5H6l-.17 1.9a5 5 0 0 0-1.34.97l-1.8-.72-1.4 2.42 1.47 1.15A5.12 5.12 0 0 0 2.7 8c0 .27.02.53.06.78L1.29 9.93l1.4 2.42 1.8-.72c.4.37.85.68 1.34.97L6 14.5h4l.17-1.9a5 5 0 0 0 1.34-.97l1.8.72 1.4-2.42-1.47-1.15c.04-.25.06-.51.06-.78z" stroke="currentColor" stroke-width="1.3"/></svg>
+    </button>
+    <div class="badge">NPCI + ISO 18245</div>
+  </div>
+</div>
+
+<!-- Settings Panel -->
+<div class="settings-panel" id="settings-panel">
+  <div class="set-title">LLM Provider Settings</div>
+  <div class="set-row">
+    <div class="set-label">Gemini API Key <span style="color:var(--ok);font-size:10px;font-weight:400">(preferred · better accuracy)</span></div>
+    <div class="key-wrap">
+      <input type="password" id="gemini-key-input" placeholder="AIzaSy..." autocomplete="off" spellcheck="false">
+      <button class="key-eye" onclick="toggleKeyVis('gemini-key-input',this)" title="Show/hide">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/></svg>
+      </button>
+    </div>
+    <div class="set-hint">
+      Get a <b>free</b> key at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com →</a> · 50 req/day free on Gemini 1.5 Pro · Key stored in browser only.
+    </div>
+  </div>
+  <div class="set-row" style="margin-bottom:0">
+    <div class="set-label">Groq API Key <span style="color:var(--mu);font-size:10px;font-weight:400">(fallback · used when Gemini key not set)</span></div>
+    <div class="key-wrap">
+      <input type="password" id="groq-key-input" placeholder="gsk_..." autocomplete="off" spellcheck="false">
+      <button class="key-eye" onclick="toggleKeyVis('groq-key-input',this)" title="Show/hide">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/></svg>
+      </button>
+    </div>
+    <div class="set-hint">Get a free key at <a href="https://console.groq.com/keys" target="_blank">console.groq.com →</a> · 100K tokens/day free</div>
+  </div>
+  <div class="set-footer">
+    <div>
+      <span class="set-status" id="set-status"></span>
+      <button class="set-clear" onclick="clearKeys()">Clear saved keys</button>
+    </div>
+    <button class="set-save" onclick="saveKeys()">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Save & Apply
+    </button>
+  </div>
 </div>
 
 <div class="tabs">
@@ -397,15 +473,78 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
   <div id="batch-results"></div>
 </div>
 
-<div class="foot">Two-step classifier · Lookup table (529 merchants) + LLM fallback · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v3.0</div>
+<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v3.1</div>
 </div>
 
 <script>
 // ── API SETUP ─────────────────────────────────────────────────────────────────
 const _k = ['Z3NrX2RXaEtPdmM1YkFVM0lRb2JQekZV','V0dkeWIzRlk1NmFoYzA0MjBjcW9xNGIx','T3lOSWpqOGo='];
-const GROQ_KEY = localStorage.getItem('groq_key') || atob(_k[0]) + atob(_k[1]) + atob(_k[2]);
-const MODELS = ['llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'mixtral-8x7b-32768'];
-let modelIdx = 0;
+const GROQ_KEY_DEFAULT = atob(_k[0]) + atob(_k[1]) + atob(_k[2]);
+const GROQ_MODELS = ['llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'mixtral-8x7b-32768'];
+let groqModelIdx = 0;
+
+function getGeminiKey() { return localStorage.getItem('gemini_key') || ''; }
+function getGroqKey()   { return localStorage.getItem('groq_key') || GROQ_KEY_DEFAULT; }
+
+// ── SETTINGS UI ───────────────────────────────────────────────────────────────
+function toggleSettings() {
+  const panel = document.getElementById('settings-panel');
+  const btn = document.getElementById('gear-btn');
+  const open = panel.classList.toggle('on');
+  btn.classList.toggle('open', open);
+  if (open) {
+    const gk = getGeminiKey();
+    const rk = localStorage.getItem('groq_key') || '';
+    document.getElementById('gemini-key-input').value = gk ? '••••••••' + gk.slice(-6) : '';
+    document.getElementById('groq-key-input').value = rk ? '••••••••' + rk.slice(-6) : '';
+    document.getElementById('set-status').textContent = '';
+  }
+}
+
+function toggleKeyVis(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  if (inp.type === 'password') {
+    const stored = inputId === 'gemini-key-input' ? getGeminiKey() : localStorage.getItem('groq_key') || '';
+    if (stored) inp.value = stored;
+    inp.type = 'text';
+  } else {
+    inp.type = 'password';
+  }
+}
+
+function saveKeys() {
+  const gVal = document.getElementById('gemini-key-input').value.trim();
+  const rVal = document.getElementById('groq-key-input').value.trim();
+  if (gVal && !gVal.startsWith('••')) localStorage.setItem('gemini_key', gVal);
+  if (rVal && !rVal.startsWith('••')) localStorage.setItem('groq_key', rVal);
+  updateProviderPill();
+  document.getElementById('set-status').textContent = '✓ Saved';
+  setTimeout(() => {
+    document.getElementById('settings-panel').classList.remove('on');
+    document.getElementById('gear-btn').classList.remove('open');
+  }, 800);
+}
+
+function clearKeys() {
+  localStorage.removeItem('gemini_key');
+  localStorage.removeItem('groq_key');
+  document.getElementById('gemini-key-input').value = '';
+  document.getElementById('groq-key-input').value = '';
+  updateProviderPill();
+  document.getElementById('set-status').textContent = '✓ Cleared';
+}
+
+function updateProviderPill() {
+  const pill = document.getElementById('provider-pill');
+  const label = document.getElementById('provider-label');
+  if (getGeminiKey()) {
+    pill.className = 'provider-pill pill-gemini';
+    label.textContent = 'Gemini 1.5 Pro';
+  } else {
+    pill.className = 'provider-pill pill-groq';
+    label.textContent = 'Groq · llama-3.1';
+  }
+}
 
 // ── MCC LOOKUP TABLE ──────────────────────────────────────────────────────────
 // Source: 529 verified Paytm merchant samples. Sub-category → { n:npci, c:cards, cat }
@@ -541,13 +680,47 @@ const SYS_FALLBACK = `You are an MCC expert for Paytm Payments Bank (NPCI + ISO 
 This merchant does not fit a standard category. Based on the URL/name, assign the best NPCI UPI MCC and ISO 18245 Cards MCC.
 Return ONLY: {"npci_mcc":"XXXX","cards_mcc":"XXXX","sub_category":"brief label","reasoning":"one sentence"}`;
 
-// ── LLM CALL ──────────────────────────────────────────────────────────────────
-async function callAPI(input, sysPrompt) {
-  for (let attempt = 0; attempt < MODELS.length; attempt++) {
-    const model = MODELS[(modelIdx + attempt) % MODELS.length];
+// ── LLM CALLS ─────────────────────────────────────────────────────────────────
+function parseJSON(raw) {
+  let p = null;
+  try { p = JSON.parse(raw.trim()); } catch(_) {}
+  if (!p) {
+    const s = raw.indexOf('{'), e = raw.lastIndexOf('}');
+    if (s !== -1 && e > s) try { p = JSON.parse(raw.slice(s, e+1)); } catch(_) {}
+  }
+  return p;
+}
+
+async function callGemini(input, sysPrompt) {
+  const key = getGeminiKey();
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${key}`;
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      system_instruction: {parts:[{text: sysPrompt}]},
+      contents: [{parts:[{text: 'Merchant: ' + input + '\n\nReturn ONLY the JSON.'}]}],
+      generationConfig: {temperature: 0.1, maxOutputTokens: 512}
+    })
+  });
+  if (resp.status === 429) throw new Error('Gemini rate limit reached (50 req/day on free tier). Switching to Groq fallback.');
+  if (!resp.ok) {
+    const e = await resp.json().catch(()=>({}));
+    throw new Error('Gemini error ' + resp.status + ': ' + (e.error?.message || 'Unknown'));
+  }
+  const data = await resp.json();
+  const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const parsed = parseJSON(raw);
+  if (!parsed) throw new Error('Could not parse Gemini response');
+  return parsed;
+}
+
+async function callGroq(input, sysPrompt) {
+  for (let attempt = 0; attempt < GROQ_MODELS.length; attempt++) {
+    const model = GROQ_MODELS[(groqModelIdx + attempt) % GROQ_MODELS.length];
     const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: {'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+      headers: {'Content-Type':'application/json','Authorization':'Bearer '+getGroqKey()},
       body: JSON.stringify({
         model, max_tokens: 512, temperature: 0.1,
         messages: [
@@ -557,27 +730,36 @@ async function callAPI(input, sysPrompt) {
       })
     });
     if (resp.status === 429) {
-      if (attempt < MODELS.length - 1) continue;
+      if (attempt < GROQ_MODELS.length - 1) continue;
       const e = await resp.json().catch(()=>({}));
       const t = e.error?.message?.match(/try again in ([^.]+)/)?.[1];
-      throw new Error('Rate limit on all models.' + (t ? ' Retry in '+t+'.' : ' Try again later.'));
+      throw new Error('Groq rate limit on all models.' + (t ? ' Retry in '+t+'.' : ' Try again later.'));
     }
     if (!resp.ok) {
       const e = await resp.json().catch(()=>({}));
-      throw new Error('API error '+resp.status+': '+(e.error?.message||'Unknown'));
+      throw new Error('Groq error '+resp.status+': '+(e.error?.message||'Unknown'));
     }
-    modelIdx = (modelIdx + attempt) % MODELS.length;
+    groqModelIdx = (groqModelIdx + attempt) % GROQ_MODELS.length;
     const data = await resp.json();
     const raw = data.choices?.[0]?.message?.content || '';
-    let parsed = null;
-    try { parsed = JSON.parse(raw.trim()); } catch(_) {}
-    if (!parsed) {
-      const s = raw.indexOf('{'), e2 = raw.lastIndexOf('}');
-      if (s !== -1 && e2 > s) try { parsed = JSON.parse(raw.slice(s, e2+1)); } catch(_) {}
-    }
-    if (!parsed) throw new Error('Could not parse LLM response');
+    const parsed = parseJSON(raw);
+    if (!parsed) throw new Error('Could not parse Groq response');
     return parsed;
   }
+}
+
+// Route: Gemini first (better accuracy), Groq fallback
+async function callAPI(input, sysPrompt) {
+  const geminiKey = getGeminiKey();
+  if (geminiKey) {
+    try {
+      return await callGemini(input, sysPrompt);
+    } catch(e) {
+      // Gemini failed → fall through to Groq silently
+      console.warn('Gemini failed, falling back to Groq:', e.message);
+    }
+  }
+  return await callGroq(input, sysPrompt);
 }
 
 // ── TWO-STEP CLASSIFY ─────────────────────────────────────────────────────────
@@ -959,6 +1141,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') runSingle();
   });
   updateFbCount();
+  updateProviderPill();
 });
 </script>
 </body>
