@@ -202,9 +202,11 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
 .bp-bar{height:4px;background:var(--acc);border-radius:2px;transition:width .4s ease;width:0%}
 .bp-txt{font-family:var(--mono);font-size:12px;color:var(--mu2)}
 
-/* Source badge (lookup vs llm fallback) */
+/* Source badge (agent_a / consensus / supervised / llm_fallback) */
 .src-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);padding:3px 9px;border-radius:20px;letter-spacing:.5px;margin-left:8px;vertical-align:middle}
 .src-lookup{background:rgba(52,211,153,.08);color:var(--ok);border:1px solid rgba(52,211,153,.2)}
+.src-consensus{background:rgba(52,211,153,.12);color:var(--ok);border:1px solid rgba(52,211,153,.3);font-weight:600}
+.src-supervised{background:rgba(124,108,252,.1);color:var(--upi);border:1px solid rgba(124,108,252,.25)}
 .src-training{background:rgba(99,179,237,.12);color:#63b3ed;border:1px solid rgba(99,179,237,.3)}
 .src-fallback{background:rgba(255,189,46,.08);color:var(--warn);border:1px solid rgba(255,189,46,.2)}
 
@@ -274,7 +276,7 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
   </div>
   <div class="hdr-right">
     <div class="provider-pill pill-gemini" id="provider-pill" onclick="toggleSettings()">
-      <div class="pdot"></div><span id="provider-label">Gemini 1.5 Pro</span>
+      <div class="pdot"></div><span id="provider-label">Dual Agent · Gemini + Groq</span>
     </div>
     <button class="gear-btn" id="gear-btn" onclick="toggleSettings()" title="API Settings">
       <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" stroke="currentColor" stroke-width="1.3"/><path d="M13.3 8a5.12 5.12 0 0 0-.06-.78l1.47-1.15-1.4-2.42-1.8.72A5 5 0 0 0 10.17 3.4L10 1.5H6l-.17 1.9a5 5 0 0 0-1.34.97l-1.8-.72-1.4 2.42 1.47 1.15A5.12 5.12 0 0 0 2.7 8c0 .27.02.53.06.78L1.29 9.93l1.4 2.42 1.8-.72c.4.37.85.68 1.34.97L6 14.5h4l.17-1.9a5 5 0 0 0 1.34-.97l1.8.72 1.4-2.42-1.47-1.15c.04-.25.06-.51.06-.78z" stroke="currentColor" stroke-width="1.3"/></svg>
@@ -295,7 +297,7 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
       </button>
     </div>
     <div class="set-hint">
-      Get a <b>free</b> key at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com →</a> · 50 req/day free on Gemini 1.5 Pro · Key stored in browser only.
+      Get a <b>free</b> key at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com →</a> · 1500 req/day free on Gemini 2.0 Flash · Used as Agent A &amp; Supervisor · Key stored in browser only.
     </div>
   </div>
   <div class="set-row" style="margin-bottom:0">
@@ -358,9 +360,9 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
     </div>
     <ul class="steps">
       <li id="s1"><div class="si">1</div>Fetching merchant homepage</li>
-      <li id="s2"><div class="si">2</div>Analyzing line of business</li>
-      <li id="s3"><div class="si">3</div>Searching NPCI &amp; ISO 18245 MCC lists</li>
-      <li id="s4"><div class="si">4</div>Classifying merchant &amp; assigning MCC codes</li>
+      <li id="s2"><div class="si">2</div>Agent A (Gemini) + Agent B (Groq) classifying in parallel</li>
+      <li id="s3"><div class="si">3</div>Comparing results — consensus or supervisor arbitration</li>
+      <li id="s4"><div class="si">4</div>Finalising classification &amp; assigning MCC codes</li>
     </ul>
   </div>
 
@@ -542,7 +544,7 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
     </div>
     <div style="font-size:11px;font-family:var(--mono);color:var(--mu);margin-top:12px;line-height:1.9;padding:10px 14px;background:var(--surf2);border-radius:6px">
       How to prepare CSV from training Excel: open the Excel → save as CSV → header row must include <b>url</b> (or <b>weburl</b>) and <b>correct_npci_mcc</b>. Adding <b>correct_sub_category</b> enables deeper failure analysis.<br>
-      ⚠ Gemini free tier: 50 req/day. Start with 25–50 sample to avoid rate limits.
+      ⚠ Dual-agent mode: each merchant uses Agent A (Gemini 2.0 Flash, 1500 RPD) + Agent B (Groq, 14400 RPD). Start with 25–50 sample to manage rate limits.
     </div>
   </div>
 
@@ -606,7 +608,7 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
   </div>
 </div>
 
-<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v5.2 — Accuracy Eval</div>
+<div class="foot">Agent A: Gemini 2.0 Flash · Agent B: Groq llama-3.1 · Supervisor: Gemini (arbitration) · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v6.0 — Dual Agent + Supervisor</div>
 </div>
 
 <script>
@@ -674,7 +676,7 @@ function updateProviderPill() {
   const label = document.getElementById('provider-label');
   if (getGeminiKey()) {
     pill.className = 'provider-pill pill-gemini';
-    label.textContent = 'Gemini 1.5 Pro';
+    label.textContent = 'Dual Agent · Gemini + Groq';
   } else {
     pill.className = 'provider-pill pill-groq';
     label.textContent = 'Groq · llama-3.1';
@@ -873,6 +875,23 @@ const SYS_FALLBACK = `You are an MCC expert for Paytm Payments Bank (NPCI + ISO 
 This merchant does not fit a standard category. Based on the URL/name, assign the best NPCI UPI MCC and ISO 18245 Cards MCC.
 Return ONLY: {"npci_mcc":"XXXX","cards_mcc":"XXXX","sub_category":"brief label","reasoning":"one sentence"}`;
 
+// Supervisor: arbitrates when Agent A and Agent B disagree
+const SYS_SUPERVISOR = `You are a senior MCC classification supervisor at Paytm Payments Bank.
+Two junior agents independently classified the same merchant. Review both and pick the more accurate sub-category.
+
+Key disambiguation rules to verify:
+- E-Learning (8241) ONLY if LEARNERS directly pay to access courses/videos/live tutoring. NOT coaching centers, school SaaS, book publishers, olympiad organizers.
+- Coaching institutes / test-prep / entrance exam academies (JEE, NEET, CA, UPSC, stock trading education) → "Coaching Institute / Test Prep" (8299)
+- B2B management software (school ERP, society/RWA management, SMS gateway API) → "Web Hosting / SaaS / Cloud" (7372)
+- Jio Fiber / fiber broadband / home internet → "Broadband / Internet Service Provider" (4816), NOT Telecom (4814 = mobile SIM only)
+- Eco/temple-flower/organic pooja products → "Pooja / Religious Goods", NOT FMCG Wholesale
+- Online video/entertainment streaming → "Online Music & Video" (5815), NOT Online Publishing
+- K-12 schools (School/Vidyalaya/Bal Mandir/Senior Secondary) → "School (K-12)", NOT University
+- University/college (B.Tech/MBA/PhD/degree programmes) → "University / College / Higher Education"
+
+Return ONLY:
+{"chosen_agent":"A"|"B","sub_category":"[exact string — must match one of Agent A or B output]","confidence":"High|Medium|Low","reasoning":"one sentence explaining why"}`;
+
 // ── LLM CALLS ─────────────────────────────────────────────────────────────────
 function parseJSON(raw) {
   let p = null;
@@ -886,7 +905,7 @@ function parseJSON(raw) {
 
 async function callGemini(input, sysPrompt) {
   const key = getGeminiKey();
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${key}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
   const resp = await fetch(url, {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
@@ -1405,51 +1424,122 @@ async function fetchPageContent(url) {
   }
 }
 
-// ── TWO-STEP CLASSIFY ─────────────────────────────────────────────────────────
+// ── MULTI-AGENT CLASSIFY ──────────────────────────────────────────────────────
+// Agent A (Gemini) + Agent B (Groq) run independently.
+// High confidence from Agent A → return immediately (fast path).
+// Medium/Low → invoke Agent B, compare results.
+//   Both agree → consensus (higher reliability).
+//   Disagree   → Supervisor (Gemini) arbitrates → picks the correct one.
+
+function _buildResult(s, entry, source) {
+  return {
+    merchant_name: s.merchant_name,
+    line_of_business: s.line_of_business,
+    business_model: s.business_model,
+    key_tags: s.key_tags || [],
+    Category: entry.cat,
+    SubCategory: s.sub_category,
+    Recommended_UPI_MCC: entry.n,
+    Recommended_Cards_MCC: entry.c,
+    confidence: s.confidence,
+    reasoning: s.reasoning,
+    what_business_does: s.what_business_does,
+    alternatives_considered: s.alternatives_considered,
+    _source: source
+  };
+}
+
+function _buildFallback(s1, fb) {
+  return {
+    merchant_name: s1.merchant_name,
+    line_of_business: s1.line_of_business,
+    business_model: s1.business_model,
+    key_tags: s1.key_tags || [],
+    Category: 'Other',
+    SubCategory: fb.sub_category || s1.sub_category || 'Unknown',
+    Recommended_UPI_MCC: fb.npci_mcc || '—',
+    Recommended_Cards_MCC: fb.cards_mcc || '—',
+    confidence: 'Low',
+    reasoning: fb.reasoning || s1.reasoning,
+    _source: 'llm_fallback'
+  };
+}
+
 async function classify(url, pageContent) {
-  // Build LLM input — URL + website content if available
   const llmInput = pageContent
     ? `Merchant URL: ${url}\n\nWEBSITE CONTENT (read carefully before classifying):\n${pageContent}`
     : url;
 
-  // Step 1: LLM identifies sub-category (with full page context if available)
+  // ── AGENT A: Gemini (primary), Groq fallback ──────────────────────────────
   const s1 = await callAPI(llmInput, SYS);
-  const entry = T[s1.sub_category];
+  const entry1 = T[s1.sub_category];
 
-  if (entry && s1.confidence !== 'Low') {
-    // DETERMINISTIC PATH: sub-category found + confidence High/Medium → lookup table
-    return {
-      merchant_name: s1.merchant_name,
-      line_of_business: s1.line_of_business,
-      business_model: s1.business_model,
-      key_tags: s1.key_tags || [],
-      Category: entry.cat,
-      SubCategory: s1.sub_category,
-      Recommended_UPI_MCC: entry.n,
-      Recommended_Cards_MCC: entry.c,
-      confidence: s1.confidence,
-      reasoning: s1.reasoning,
-      what_business_does: s1.what_business_does,
-      alternatives_considered: s1.alternatives_considered,
-      _source: 'lookup'
-    };
-  } else {
-    // FALLBACK PATH: unknown/low-confidence → second LLM call for direct MCC reasoning
-    const s2 = await callAPI(llmInput, SYS_FALLBACK);
-    return {
-      merchant_name: s1.merchant_name,
-      line_of_business: s1.line_of_business,
-      business_model: s1.business_model,
-      key_tags: s1.key_tags || [],
-      Category: entry?.cat || 'Other',
-      SubCategory: s2.sub_category || s1.sub_category || 'Unknown',
-      Recommended_UPI_MCC: s2.npci_mcc || '—',
-      Recommended_Cards_MCC: s2.cards_mcc || '—',
-      confidence: 'Low',
-      reasoning: s2.reasoning || s1.reasoning,
-      _source: 'llm_fallback'
-    };
+  // Fast path: Agent A is High confidence → return immediately, no Agent B needed
+  if (entry1 && s1.confidence === 'High') {
+    return _buildResult(s1, entry1, 'agent_a');
   }
+
+  // ── AGENT B: Groq (independent second opinion) ────────────────────────────
+  let s2 = null;
+  try {
+    s2 = await callGroq(llmInput, SYS);
+  } catch(e) {
+    console.warn('Agent B (Groq) failed:', e.message);
+  }
+
+  // Agent B unavailable → fall back to single-agent result
+  if (!s2) {
+    if (entry1) return _buildResult(s1, entry1, 'agent_a');
+    const fb = await callAPI(llmInput, SYS_FALLBACK);
+    return _buildFallback(s1, fb);
+  }
+
+  const entry2 = T[s2.sub_category];
+
+  // ── CONSENSUS: Both agents agree ─────────────────────────────────────────
+  if (s1.sub_category === s2.sub_category) {
+    const entry = entry1 || entry2;
+    if (entry) {
+      // Use Agent A's full result data (better reasoning chain), mark as consensus
+      return _buildResult(s1, entry, 'consensus');
+    }
+  }
+
+  // ── DISAGREEMENT: Supervisor arbitrates ──────────────────────────────────
+  const supervisorInput =
+    `Merchant URL: ${url}\n\n` +
+    `AGENT A (Gemini) classified as: "${s1.sub_category}" (confidence: ${s1.confidence})\n` +
+    `Agent A reasoning: ${s1.reasoning || '—'}\n\n` +
+    `AGENT B (Groq) classified as: "${s2.sub_category}" (confidence: ${s2.confidence})\n` +
+    `Agent B reasoning: ${s2.reasoning || '—'}`;
+
+  let sv = null;
+  try {
+    sv = await callGemini(supervisorInput, SYS_SUPERVISOR);
+  } catch(e) {
+    console.warn('Supervisor failed:', e.message);
+  }
+
+  if (sv) {
+    const svEntry = T[sv.sub_category];
+    if (svEntry) {
+      // Merge supervisor verdict with the winning agent's data
+      const base = (sv.sub_category === s2.sub_category) ? s2 : s1;
+      const merged = { ...base, sub_category: sv.sub_category,
+                       reasoning: sv.reasoning || base.reasoning,
+                       confidence: sv.confidence || base.confidence };
+      return _buildResult(merged, svEntry, 'supervised');
+    }
+  }
+
+  // Supervisor unavailable or picked unknown sub-category → best available
+  const best = (s1.confidence === 'High') ? s1 : (s2 && s2.confidence === 'High') ? s2 : s1;
+  const bestEntry = T[best.sub_category];
+  if (bestEntry) return _buildResult(best, bestEntry, 'agent_a');
+
+  // All paths exhausted → direct MCC fallback
+  const fb = await callAPI(llmInput, SYS_FALLBACK);
+  return _buildFallback(s1, fb);
 }
 
 // ── FEEDBACK LOOP ─────────────────────────────────────────────────────────────
@@ -1632,19 +1722,22 @@ function render(d, url) {
   cb.className = 'conf-badge '+cls;
   cb.textContent = label;
 
-  // Source badge: training (exact match) vs lookup (LLM→table) vs llm_fallback
+  // Source badge: agent_a / consensus / supervised / llm_fallback
   const sb = document.getElementById('src-badge');
-  if (d._source === 'lookup') {
-    sb.className = 'src-badge src-lookup';
-    sb.textContent = '● Lookup';
-  } else {
-    sb.className = 'src-badge src-fallback';
-    sb.textContent = '⚠ LLM Fallback';
-  }
+  const srcMap = {
+    'agent_a':    ['src-lookup',     '● Agent A'],
+    'consensus':  ['src-consensus',  '✓ Consensus'],
+    'supervised': ['src-supervised', '⚖ Supervised'],
+    'llm_fallback': ['src-fallback', '⚠ LLM Fallback'],
+    'lookup':     ['src-lookup',     '● Lookup'],
+  };
+  const [sCls, sLabel] = srcMap[d._source] || ['src-fallback', '⚠ Unknown'];
+  sb.className = 'src-badge ' + sCls;
+  sb.textContent = sLabel;
 
   // Review banner
   const rb = document.getElementById('review-banner');
-  rb.classList.toggle('on', d._source === 'llm_fallback');
+  rb.classList.toggle('on', d._source === 'llm_fallback' || (d._source === 'supervised' && d.confidence === 'Low'));
 
   const tr = document.getElementById('tags-row');
   tr.innerHTML = '';
@@ -1759,9 +1852,15 @@ async function runBatch() {
 function makeBatchCard(url, d) {
   const confMap = {High:['conf-high','High'],Medium:['conf-med','Medium'],Low:['conf-low','Low']};
   const [cls] = confMap[d.confidence] || confMap.Low;
-  const srcBadge = d._source === 'lookup'
-    ? '<span class="src-badge src-lookup" style="font-size:10px">Lookup</span>'
-    : '<span class="src-badge src-fallback" style="font-size:10px">LLM Fallback</span>';
+  const bSrcMap = {
+    'agent_a':    ['src-lookup',     'Agent A'],
+    'consensus':  ['src-consensus',  '✓ Consensus'],
+    'supervised': ['src-supervised', '⚖ Supervised'],
+    'llm_fallback': ['src-fallback', 'LLM Fallback'],
+    'lookup':     ['src-lookup',     'Lookup'],
+  };
+  const [bsCls, bsLabel] = bSrcMap[d._source] || ['src-fallback', 'Unknown'];
+  const srcBadge = `<span class="src-badge ${bsCls}" style="font-size:10px">${bsLabel}</span>`;
   const div = document.createElement('div');
   div.className = 'batch-item';
   div.innerHTML = `
