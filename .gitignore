@@ -65,3 +65,9 @@ data/tools/*
 .foundry/.flow-session.json
 .foundry/score/eval/
 .claude/settings.local.json
+
+# Service account keys & credentials — NEVER commit these
+*-service-account*.json
+*-credentials*.json
+rule-admin-*.json
+data/agents/**/*.json
