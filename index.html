@@ -474,7 +474,7 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
   <div id="batch-results"></div>
 </div>
 
-<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v4.6</div>
+<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v5.0 — chain-of-thought reasoning</div>
 </div>
 
 <script>
@@ -660,9 +660,17 @@ const CAT_LIST = Object.keys(T).join('\n- ');
 // ── PROMPTS ───────────────────────────────────────────────────────────────────
 // Step 1: classify to sub-category ONLY (LLM never touches MCC codes)
 const SYS = `You are a merchant classifier for Paytm Payments Bank.
-Pick exactly ONE sub-category from the canonical list below that best describes this merchant.
-You will receive the merchant URL and, when available, the full text content of their website homepage.
-READ ALL WEBSITE CONTENT carefully — the actual page text is far more reliable than the domain name alone.
+You will receive the merchant URL and the full text content of multiple pages of their website.
+
+THINKING PROCESS — follow every step before writing the JSON:
+STEP 1 — READ EVERYTHING: Read ALL the website content provided. Do not skim. Note every product, service, and audience mentioned.
+STEP 2 — DESCRIBE THE BUSINESS: In your own words, what does this business actually sell or provide? Who are its customers (consumers, schools, businesses)?
+STEP 3 — IDENTIFY PRIMARY REVENUE: What is the main thing customers pay for? Physical products? Services? Software? Content?
+STEP 4 — CONSIDER AT LEAST 3 ALTERNATIVES: List 3 sub-categories this could be and reason why each one does or does not fit.
+STEP 5 — APPLY MANDATORY RULES: Check if any mandatory rule below overrides your initial guess.
+STEP 6 — CONCLUDE: Pick the single best sub-category with High/Medium/Low confidence.
+
+DO NOT jump to a conclusion based on the brand name or domain name. Base your answer entirely on what the website content says.
 Return ONLY the JSON shown — no other text, no markdown, no backticks.
 
 SUB-CATEGORIES:
@@ -705,7 +713,18 @@ Automobiles: Car & Bike Dealership: hondacarindia.com, droom.in | Auto Parts & A
 Utilities: Electricity / Power / Utility: tpwesternodisha.com | NGO / Non-Profit / Charitable Trust: aastha.org.in, umeedngo.org | State Government / Govt Department: mahaonline.gov.in
 
 JSON output:
-{"merchant_name":"...","sub_category":"[exact string from list above]","line_of_business":"...","business_model":"B2B|B2C|Hybrid","key_tags":["tag1","tag2"],"confidence":"High|Medium|Low","reasoning":"one sentence"}`;
+{
+  "merchant_name":"...",
+  "what_business_does":"one sentence describing what the business actually sells/provides based on website content",
+  "primary_customers":"who pays them — consumers / businesses / schools / etc.",
+  "alternatives_considered":"sub-cat A (rejected: reason) | sub-cat B (rejected: reason) | sub-cat C (rejected: reason)",
+  "sub_category":"[exact string from list above]",
+  "line_of_business":"...",
+  "business_model":"B2B|B2C|Hybrid",
+  "key_tags":["tag1","tag2"],
+  "confidence":"High|Medium|Low",
+  "reasoning":"why this sub-category is correct over the alternatives"
+}`;
 
 // Step 2 (fallback): only called when sub-category is unknown or confidence Low
 const SYS_FALLBACK = `You are an MCC expert for Paytm Payments Bank (NPCI + ISO 18245).
@@ -732,7 +751,7 @@ async function callGemini(input, sysPrompt) {
     body: JSON.stringify({
       system_instruction: {parts:[{text: sysPrompt}]},
       contents: [{parts:[{text: 'Merchant: ' + input + '\n\nReturn ONLY the JSON.'}]}],
-      generationConfig: {temperature: 0.1, maxOutputTokens: 512}
+      generationConfig: {temperature: 0.1, maxOutputTokens: 2048}
     })
   });
   if (resp.status === 429) throw new Error('Gemini rate limit reached (50 req/day on free tier). Switching to Groq fallback.');
@@ -754,7 +773,7 @@ async function callGroq(input, sysPrompt) {
       method: 'POST',
       headers: {'Content-Type':'application/json','Authorization':'Bearer '+getGroqKey()},
       body: JSON.stringify({
-        model, max_tokens: 512, temperature: 0.1,
+        model, max_tokens: 2048, temperature: 0.1,
         messages: [
           {role:'system', content: sysPrompt},
           {role:'user', content: 'Merchant: ' + input + '\n\nReturn ONLY the JSON.'}
@@ -1268,6 +1287,8 @@ async function classify(url, pageContent) {
       Recommended_Cards_MCC: entry.c,
       confidence: s1.confidence,
       reasoning: s1.reasoning,
+      what_business_does: s1.what_business_does,
+      alternatives_considered: s1.alternatives_considered,
       _source: 'lookup'
     };
   } else {
@@ -1505,7 +1526,12 @@ function render(d, url) {
   document.getElementById('ccode').textContent = d.Recommended_Cards_MCC || '—';
   document.getElementById('ccat').textContent = d.Category || '';
   document.getElementById('csub').textContent = d.SubCategory || '';
-  document.getElementById('reasoning').textContent = d.reasoning || '—';
+  // Show full chain-of-thought: what the business does + alternatives considered + final reasoning
+  const reasonParts = [];
+  if (d.what_business_does) reasonParts.push(d.what_business_does);
+  if (d.alternatives_considered) reasonParts.push('Considered: ' + d.alternatives_considered);
+  if (d.reasoning) reasonParts.push('Verdict: ' + d.reasoning);
+  document.getElementById('reasoning').textContent = reasonParts.join('\n\n') || d.reasoning || '—';
 
   // Reset feedback UI
   document.getElementById('fb-yes').classList.remove('active-yes','active-no');
