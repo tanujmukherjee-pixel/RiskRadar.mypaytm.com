@@ -474,7 +474,7 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
   <div id="batch-results"></div>
 </div>
 
-<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v5.0 — chain-of-thought reasoning</div>
+<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v5.1</div>
 </div>
 
 <script>
@@ -689,7 +689,8 @@ MANDATORY RULES:
 - NBFC/EMI/personal loan apps (Bajaj, IIFL, Paisabazaar) → "Loans / NBFC / EMI / Lending"
 - Dietician/nutritionist/personalized diet plan/weight loss consultation services → "Dietician / Health Practitioner" (MCC 8099) — NOT Cosmetics
 - "Cosmetics / Beauty / Skincare" is ONLY for products (physical goods: creams, serums, makeup, hair care) — NOT health/diet/nutrition services
-- Skincare/beauty/hair care/personal care product brands (even with generic names like 'store', 'india', 'natural', 'aloe') → "Cosmetics / Beauty / Skincare"
+- B2B wholesale distributors / MLM / direct selling agents for FMCG health & beauty products (Forever Living Products/FLP, Amway, Modicare etc.) → "FMCG Wholesale / B2B Distribution" (MCC 5411) — NOT Cosmetics
+- Skincare/beauty/hair care/personal care product brands selling DIRECT TO CONSUMERS (retail) → "Cosmetics / Beauty / Skincare"
 - Gift/flower/cake/greeting platforms (NOT cosmetics) → "Gift Shop / Novelty"
 - Ayurvedic/herbal product brands (nutrition + wellness) → "Cosmetics / Beauty / Skincare"
 - Cable TV local operators (GTPL, Hathway, DEN) → "Cable TV / Local Cable Operator"
@@ -707,7 +708,7 @@ Digital: Online Music & Video: addatimes.com, watcho.com | Streaming Platform: h
 Education: University / College / Higher Education: sharda.ac.in, amity.edu, rkdf.ac.in | School (K-12): abhyasaschool.com, srichaitanyaschool.net | E-Learning / EdTech: odaclass.com, gharpeshiksha.com, aclm.in | Coaching Institute / Test Prep: vidyamandir.com
 Healthcare: Pharmacy / Drug Store: pharmeasy.in, apollopharmacy.in, netmeds.com | Hospital: kauveryhospital.com, miotinternational.com | Doctors / Clinic / Diagnostic Centre: care24.co.in, qupapp.com, reboot-wellness.com
 Food: Online Food Delivery App: gofoodieonline.com, aahari.com, srfoods.co.in | Restaurant / Eating Place: dosavillage.com | Grocery / Supermarket / Kirana: barosi.in, flabiafresh.com | Bakery: whipped.in, frozenbottle.in | Meat / Fish / Poultry: freshfishbasket.com, calcuttafreshfoods.com
-Retail: Cosmetics / Beauty / Skincare: ybpskin.com, aloestoreindia.in, kapiva.in, endurasupplements.com | Gift Shop / Novelty: winni.in, nikkiflower.com, mypoojabox.in | Apparel / Clothing / Fashion: aakashgangauniforms.com, tulobaby.com, thedancebible.com | Jewellery Store: princejewellery.com, sencogoldanddiamonds.com | Electronics & Home Appliances: glenindia.com, vishalint.com, vidiem.in | Home Decor / Furniture / Kitchen: hoopa.in, angelfurniture.in, niana.co | Books / Book Store: surabooks.com, ebcwebstore.com | Stationery / Office Supplies: raajkart.com, statmo.in | Footwear / Shoes: shopcrocs.in, orazosafety.com | Toys / Games / Hobby: nekavo.com, khelna.in | Pet Care & Supplies: thepetnest.com, thatdogintuxedo.com | Pooja / Religious Goods: ashramestore.com, helpusgreen.com, thekkgroups.in | Computer Accessories (Retail): store.lenovo.com, thecosmicbyte.com | Online Marketplace: flipkart.com, togofogo.com
+Retail: FMCG Wholesale / B2B Distribution: aloestoreindia.in, aajjo.com (B2B wholesale/distributor model) | Cosmetics / Beauty / Skincare: ybpskin.com, kapiva.in, endurasupplements.com, ustraa.com (retail consumer products) | Gift Shop / Novelty: winni.in, nikkiflower.com, mypoojabox.in | Apparel / Clothing / Fashion: aakashgangauniforms.com, tulobaby.com, thedancebible.com | Jewellery Store: princejewellery.com, sencogoldanddiamonds.com | Electronics & Home Appliances: glenindia.com, vishalint.com, vidiem.in | Home Decor / Furniture / Kitchen: hoopa.in, angelfurniture.in, niana.co | Books / Book Store: surabooks.com, ebcwebstore.com | Stationery / Office Supplies: raajkart.com, statmo.in | Footwear / Shoes: shopcrocs.in, orazosafety.com | Toys / Games / Hobby: nekavo.com, khelna.in | Pet Care & Supplies: thepetnest.com, thatdogintuxedo.com | Pooja / Religious Goods: ashramestore.com, helpusgreen.com, thekkgroups.in | Computer Accessories (Retail): store.lenovo.com, thecosmicbyte.com | Online Marketplace: flipkart.com, togofogo.com
 BFSI: LIC (Life Insurance Corporation): licindia.in ONLY | Insurance (Non-LIC): reliancegeneral.co.in, zopper.com | Loans / NBFC / EMI / Lending: paisabazaar.com, abfldirect.com, axio.co.in | Stock Broker / Securities / Trading: zerodha.com, investello.com | Real Estate / Property: magicbricks.com, ipanreal.com
 Automobiles: Car & Bike Dealership: hondacarindia.com, droom.in | Auto Parts & Accessories: trakntell.com, tigermotoo.com
 Utilities: Electricity / Power / Utility: tpwesternodisha.com | NGO / Non-Profit / Charitable Trust: aastha.org.in, umeedngo.org | State Government / Govt Department: mahaonline.gov.in
