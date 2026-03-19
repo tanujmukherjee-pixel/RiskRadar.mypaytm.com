@@ -474,7 +474,7 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
   <div id="batch-results"></div>
 </div>
 
-<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v4.4 — follows real nav links</div>
+<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v4.5</div>
 </div>
 
 <script>
@@ -674,6 +674,8 @@ MANDATORY RULES:
 - SaaS/cloud/web hosting/software-as-a-service → "Web Hosting / SaaS / Cloud"
 - B2B software sold TO schools/colleges for management (ERP, fee management, attendance, student tracking, school admin) → "Web Hosting / SaaS / Cloud" (NOT E-Learning)
 - E-Learning is ONLY for platforms where students/learners directly consume educational content (courses, videos, tutoring) — NOT school management software
+- K-12 schools: name/site mentions "School", "Sr Sec", "Senior Secondary", "High School", "Primary", "Vidyalaya", "Bal Mandir", "Public School", "Convent", "Niketan" (school context), classes up to 12th → "School (K-12)" (MCC 8211) — NOT University
+- University/College: degree-granting institutions (B.Tech, MBA, PhD, UG/PG programmes) → "University / College / Higher Education" (MCC 8220)
 - Zomato/Swiggy/food delivery aggregator apps → "Online Food Delivery App"
 - LIC specifically (licindia.in) → "LIC (Life Insurance Corporation)"
 - NBFC/EMI/personal loan apps (Bajaj, IIFL, Paisabazaar) → "Loans / NBFC / EMI / Lending"
