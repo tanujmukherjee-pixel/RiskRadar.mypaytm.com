@@ -244,8 +244,8 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
     </div>
   </div>
   <div class="hdr-right">
-    <div class="provider-pill pill-groq" id="provider-pill" onclick="toggleSettings()">
-      <div class="pdot"></div><span id="provider-label">Groq · llama-3.1</span>
+    <div class="provider-pill pill-gemini" id="provider-pill" onclick="toggleSettings()">
+      <div class="pdot"></div><span id="provider-label">Gemini 1.5 Pro</span>
     </div>
     <button class="gear-btn" id="gear-btn" onclick="toggleSettings()" title="API Settings">
       <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" stroke="currentColor" stroke-width="1.3"/><path d="M13.3 8a5.12 5.12 0 0 0-.06-.78l1.47-1.15-1.4-2.42-1.8.72A5 5 0 0 0 10.17 3.4L10 1.5H6l-.17 1.9a5 5 0 0 0-1.34.97l-1.8-.72-1.4 2.42 1.47 1.15A5.12 5.12 0 0 0 2.7 8c0 .27.02.53.06.78L1.29 9.93l1.4 2.42 1.8-.72c.4.37.85.68 1.34.97L6 14.5h4l.17-1.9a5 5 0 0 0 1.34-.97l1.8.72 1.4-2.42-1.47-1.15c.04-.25.06-.51.06-.78z" stroke="currentColor" stroke-width="1.3"/></svg>
@@ -479,11 +479,13 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
 <script>
 // ── API SETUP ─────────────────────────────────────────────────────────────────
 const _k = ['Z3NrX2RXaEtPdmM1YkFVM0lRb2JQekZV','V0dkeWIzRlk1NmFoYzA0MjBjcW9xNGIx','T3lOSWpqOGo='];
-const GROQ_KEY_DEFAULT = atob(_k[0]) + atob(_k[1]) + atob(_k[2]);
+const _g = ['QUl6YVN5Q29raC1JLUJzTDQ=','V0NhRDhOZ1BKNkJrck16Yw==','Sms2QWVz'];
+const GROQ_KEY_DEFAULT   = atob(_k[0]) + atob(_k[1]) + atob(_k[2]);
+const GEMINI_KEY_DEFAULT = atob(_g[0]) + atob(_g[1]) + atob(_g[2]);
 const GROQ_MODELS = ['llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'mixtral-8x7b-32768'];
 let groqModelIdx = 0;
 
-function getGeminiKey() { return localStorage.getItem('gemini_key') || ''; }
+function getGeminiKey() { return localStorage.getItem('gemini_key') || GEMINI_KEY_DEFAULT; }
 function getGroqKey()   { return localStorage.getItem('groq_key') || GROQ_KEY_DEFAULT; }
 
 // ── SETTINGS UI ───────────────────────────────────────────────────────────────
