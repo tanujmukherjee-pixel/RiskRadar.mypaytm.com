@@ -474,7 +474,7 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
   <div id="batch-results"></div>
 </div>
 
-<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v4.0 — training data pre-lookup</div>
+<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v4.1 — reads website content via Jina AI</div>
 </div>
 
 <script>
@@ -661,6 +661,8 @@ const CAT_LIST = Object.keys(T).join('\n- ');
 // Step 1: classify to sub-category ONLY (LLM never touches MCC codes)
 const SYS = `You are a merchant classifier for Paytm Payments Bank.
 Pick exactly ONE sub-category from the canonical list below that best describes this merchant.
+You will receive the merchant URL and, when available, the full text content of their website homepage.
+READ ALL WEBSITE CONTENT carefully — the actual page text is far more reliable than the domain name alone.
 Return ONLY the JSON shown — no other text, no markdown, no backticks.
 
 SUB-CATEGORIES:
@@ -1184,8 +1186,25 @@ function extractDomain(url){
   return url.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').split('/')[0].split('?')[0].split(':')[0];
 }
 
+// ── WEB CONTENT FETCH (Jina AI Reader — CORS-safe, free) ─────────────────────
+async function fetchPageContent(url) {
+  try {
+    const jinaUrl = 'https://r.jina.ai/' + url;
+    const resp = await fetch(jinaUrl, {
+      headers: { 'Accept': 'text/plain', 'X-Return-Format': 'text' },
+      signal: AbortSignal.timeout(12000)
+    });
+    if (!resp.ok) return null;
+    const text = await resp.text();
+    // Trim to ~5000 chars — enough for context, within token limits
+    return text.slice(0, 5000).trim() || null;
+  } catch(e) {
+    return null; // Timeout or network error → fall back to URL-only
+  }
+}
+
 // ── TWO-STEP CLASSIFY ─────────────────────────────────────────────────────────
-async function classify(url) {
+async function classify(url, pageContent) {
   // Step 0: Exact training-data match → instant deterministic answer, no LLM call
   const domain = extractDomain(url);
   const trainedSubCat = TRAINING_LOOKUP[domain];
@@ -1208,8 +1227,13 @@ async function classify(url) {
     }
   }
 
-  // Step 1: LLM identifies sub-category
-  const s1 = await callAPI(url, SYS);
+  // Build LLM input — URL + website content if available
+  const llmInput = pageContent
+    ? `Merchant URL: ${url}\n\nWEBSITE CONTENT (read carefully before classifying):\n${pageContent}`
+    : url;
+
+  // Step 1: LLM identifies sub-category (with full page context if available)
+  const s1 = await callAPI(llmInput, SYS);
   const entry = T[s1.sub_category];
 
   if (entry && s1.confidence !== 'Low') {
@@ -1229,7 +1253,7 @@ async function classify(url) {
     };
   } else {
     // FALLBACK PATH: unknown/low-confidence → second LLM call for direct MCC reasoning
-    const s2 = await callAPI(url, SYS_FALLBACK);
+    const s2 = await callAPI(llmInput, SYS_FALLBACK);
     return {
       merchant_name: s1.merchant_name,
       line_of_business: s1.line_of_business,
@@ -1374,15 +1398,23 @@ async function runSingle() {
   jData = null;
 
   try {
-    showProg('Identifying merchant type...', 1);
-    await wait(300);
-    showProg('Matching to sub-category taxonomy...', 2);
-    await wait(250);
+    // Check training lookup first (instant — skip page fetch if known merchant)
+    const knownDomain = TRAINING_LOOKUP[extractDomain(url)];
+    let pageContent = null;
+    if (!knownDomain) {
+      showProg('Reading merchant website...', 1);
+      pageContent = await fetchPageContent(url);
+      showProg('Analyzing content with AI...', 2);
+    } else {
+      showProg('Found in training database...', 1);
+      showProg('Matching to sub-category taxonomy...', 2);
+    }
+    await wait(100);
     showProg('Looking up NPCI & ISO 18245 codes...', 3);
-    await wait(200);
+    await wait(100);
     showProg('Finalising classification...', 4);
 
-    const parsed = await classify(url);
+    const parsed = await classify(url, pageContent);
     jData = parsed;
     currentResult = parsed;
     currentUrl = url;
@@ -1535,7 +1567,8 @@ async function runBatch() {
     bar.style.width = Math.round((i/urls.length)*100)+'%';
     ptxt.textContent = `Processing ${i+1} of ${urls.length}: ${urls[i]}`;
     try {
-      const d = await classify(urls[i]);
+      const pc = TRAINING_LOOKUP[extractDomain(urls[i])] ? null : await fetchPageContent(urls[i]);
+      const d = await classify(urls[i], pc);
       container.appendChild(makeBatchCard(urls[i], d));
     } catch(e) {
       container.appendChild(makeErrCard(urls[i], e.message));
