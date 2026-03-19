@@ -4,7 +4,7 @@
 JENKINS_URL="https://central-jenkins.paytmdgt.io"
 JOB_NAME="Gradle-Nexus-Java17"
 PARAMS="BB_REPO_NAME=${1:?BB_REPO_NAME must be provided}&BB_SOURCE_BRANCH=${1:?BB_BRANCH must be provided}"
-USER="NEXUS_USER_REDACTED"
+USER="${NEXUS_USER:?NEXUS_USER env var must be set}"
 PASSWORD="${NEXUS_PASSWORD:?NEXUS_PASSWORD env var must be set}"
 AUTH_HEADER=$(echo -n "$USER:$PASSWORD" | base64)
 
