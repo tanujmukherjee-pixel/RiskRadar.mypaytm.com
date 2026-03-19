@@ -473,7 +473,7 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
   <div id="batch-results"></div>
 </div>
 
-<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v3.3</div>
+<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v3.4</div>
 </div>
 
 <script>
@@ -678,10 +678,13 @@ MANDATORY RULES:
 - Cable TV local operators (GTPL, Hathway, DEN) → "Cable TV / Local Cable Operator"
 - DTH providers (Tata Sky, Dish TV) → "DTH / Direct to Home"
 - Defence/armed forces travel/ticket booking (udchalo.com) → "Travel Agency / Tour Operator"
+- Hotel/stay/accommodation booking platforms (domain contains 'stay', 'hotel', 'resort', 'villa', 'inn') → "Hotel / Resort / Guest House"
+- "Online Food Delivery App" ONLY for aggregator apps like Zomato/Swiggy that list multiple restaurants — NOT hotel/stay platforms
 - If truly unclear after careful analysis → "Unknown / Cannot Determine"
 
 TRAINING DATA EXAMPLES — match these patterns for correct sub-category:
 Transport: Intercity & State Bus (RTC/STC): gsrtc.in, ksrtconline.com | Airlines: airindia.in, barkattravels.in | Taxi / Ride Sharing: wticabs.com, goamiles.com | Travel Agency / Tour Operator: jimcorbettbooking.in, goa-tourism.com, udchalo.com | Courier / Logistics: shiprocket.in, 24x7courier.com
+Travel/Stay: Hotel / Resort / Guest House: zero2zhotels.com, farmhousehub.in, stayrelive.com
 Telecom: Telecom / Mobile Recharge: airtel.in, jio.com/plans | Broadband / Internet Service Provider: actcorp.in, readylink.in, jio.com/airfiber | Web Hosting / SaaS / Cloud: shauryasoft.com, acadamis.in | Cable TV / Local Cable Operator: gtpl.net, gtplkcbpl.com | DTH / Direct to Home: sscbpl.com, mydtv.in
 Digital: Online Music & Video: addatimes.com, watcho.com | Streaming Platform: hoichoi.tv | Online Publishing / Newspapers: icjonline.com, readwhere.com | Subscription Services: investello.com | Deals & Coupons / Cashback: nearbuy.com, mschirpy.com, thriwe.com
 Education: University / College / Higher Education: sharda.ac.in, amity.edu, rkdf.ac.in | School (K-12): abhyasaschool.com, srichaitanyaschool.net | E-Learning / EdTech: odaclass.com, gharpeshiksha.com, aclm.in | Coaching Institute / Test Prep: vidyamandir.com
