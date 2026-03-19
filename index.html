@@ -231,6 +231,34 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
 .fb-count{font-size:11px;font-family:var(--mono);color:var(--mu);margin-left:auto;cursor:pointer}
 .fb-count:hover{color:var(--acc)}
 .fb-saved{font-size:11px;font-family:var(--mono);color:var(--ok);display:none;margin-left:4px}
+
+/* Eval tab */
+.eval-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+@media(max-width:560px){.eval-stats{grid-template-columns:1fr 1fr}}
+.eval-stat-box{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);padding:16px;text-align:center}
+.eval-stat-box.ev-ok{border-top:2px solid var(--ok)}
+.eval-stat-box.ev-err{border-top:2px solid var(--err)}
+.eval-stat-box.ev-acc{border-top:2px solid var(--acc)}
+.eval-stat-num{font-family:var(--mono);font-size:26px;font-weight:500;line-height:1;margin-bottom:4px}
+.eval-stat-box.ev-ok .eval-stat-num{color:var(--ok)}
+.eval-stat-box.ev-err .eval-stat-num{color:var(--err)}
+.eval-stat-box.ev-acc .eval-stat-num{color:var(--acc)}
+.eval-stat-lbl{font-size:10px;font-family:var(--mono);color:var(--mu);text-transform:uppercase;letter-spacing:.5px}
+.eval-table-wrap{overflow-x:auto;border:1px solid var(--bdr);border-radius:var(--rl);max-height:400px;overflow-y:auto;margin-bottom:16px}
+.eval-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+.eval-table th{background:var(--surf2);color:var(--mu);text-transform:uppercase;letter-spacing:.8px;font-size:10px;padding:10px 14px;text-align:left;position:sticky;top:0;white-space:nowrap;border-bottom:1px solid var(--bdr)}
+.eval-table td{padding:9px 14px;border-top:1px solid var(--bdr);color:var(--mu2);vertical-align:middle}
+.eval-table tr.ev-ok td:last-child{color:var(--ok);font-weight:700;font-size:14px}
+.eval-table tr.ev-err td:last-child{color:var(--err);font-weight:700;font-size:14px}
+.eval-table tr.ev-skip td:last-child{color:var(--mu)}
+.ev-url-cell{color:var(--mu);font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.failure-group{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--rl);padding:14px 18px;margin-bottom:10px}
+.fg-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px}
+.fg-subcat{font-size:13px;font-weight:600;color:var(--err)}
+.fg-count{font-size:11px;font-family:var(--mono);background:rgba(255,95,87,.08);color:var(--err);border:1px solid rgba(255,95,87,.2);padding:2px 10px;border-radius:20px;white-space:nowrap}
+.fg-items{font-size:11px;font-family:var(--mono);color:var(--mu);line-height:1.9}
+.eval-sel{background:var(--surf2);border:1px solid var(--bdr2);color:var(--tx);font-family:var(--mono);font-size:12px;padding:6px 10px;border-radius:6px;outline:none}
+.eval-sel:focus{border-color:rgba(0,229,180,.4)}
 </style>
 </head>
 <body>
@@ -295,6 +323,7 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
 <div class="tabs">
   <button class="tab active" onclick="switchTab('single',this)">Single URL</button>
   <button class="tab" onclick="switchTab('batch',this)">Batch (CSV)</button>
+  <button class="tab" onclick="switchTab('eval',this)">Accuracy Eval</button>
 </div>
 
 <!-- Single Tab -->
@@ -474,7 +503,110 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
   <div id="batch-results"></div>
 </div>
 
-<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v5.1</div>
+<!-- Eval Tab -->
+<div class="tab-pane" id="tab-eval">
+  <div class="card">
+    <div class="flabel">Paste CSV · columns: url, correct_npci_mcc (optional: correct_sub_category, correct_cards_mcc)</div>
+    <textarea id="eval-csv" placeholder="url,correct_npci_mcc,correct_sub_category&#10;zomato.com,5812,Online Food Delivery App&#10;swiggy.com,5812,Online Food Delivery App&#10;pharmeasy.in,5912,Pharmacy / Drug Store" style="min-height:100px"></textarea>
+    <div style="margin-top:14px;display:flex;flex-wrap:wrap;align-items:center;gap:12px">
+      <label style="cursor:pointer">
+        <input type="file" id="eval-file" accept=".csv" style="display:none" onchange="loadEvalCSV(this)">
+        <button class="btn-ghost" onclick="document.getElementById('eval-file').click()">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 12v2h12v-2M8 2v8M5 7l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Upload CSV file
+        </button>
+      </label>
+      <div style="display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap">
+        <label style="font-size:12px;font-family:var(--mono);color:var(--mu);display:flex;align-items:center;gap:6px">
+          Sample
+          <select id="eval-sample" class="eval-sel">
+            <option value="25">25 random</option>
+            <option value="50" selected>50 random</option>
+            <option value="100">100 random</option>
+            <option value="all">All</option>
+          </select>
+        </label>
+        <label style="font-size:12px;font-family:var(--mono);color:var(--mu);display:flex;align-items:center;gap:6px">
+          Parallel
+          <select id="eval-concurrency" class="eval-sel">
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="5">5</option>
+          </select>
+        </label>
+        <button class="btn" id="evalbtn" onclick="runEval()">
+          <svg width="11" height="11" viewBox="0 0 16 16"><polygon points="4,2 14,8 4,14" fill="#000"/></svg>
+          Start Eval
+        </button>
+      </div>
+    </div>
+    <div style="font-size:11px;font-family:var(--mono);color:var(--mu);margin-top:12px;line-height:1.9;padding:10px 14px;background:var(--surf2);border-radius:6px">
+      How to prepare CSV from training Excel: open the Excel → save as CSV → header row must include <b>url</b> (or <b>weburl</b>) and <b>correct_npci_mcc</b>. Adding <b>correct_sub_category</b> enables deeper failure analysis.<br>
+      ⚠ Gemini free tier: 50 req/day. Start with 25–50 sample to avoid rate limits.
+    </div>
+  </div>
+
+  <!-- Live stats -->
+  <div id="eval-prog" style="display:none;margin-bottom:20px">
+    <div class="eval-stats">
+      <div class="eval-stat-box">
+        <div class="eval-stat-num" id="es-total">0</div>
+        <div class="eval-stat-lbl">Tested</div>
+      </div>
+      <div class="eval-stat-box ev-ok">
+        <div class="eval-stat-num" id="es-correct">0</div>
+        <div class="eval-stat-lbl">Correct</div>
+      </div>
+      <div class="eval-stat-box ev-err">
+        <div class="eval-stat-num" id="es-wrong">0</div>
+        <div class="eval-stat-lbl">Wrong</div>
+      </div>
+      <div class="eval-stat-box ev-acc">
+        <div class="eval-stat-num" id="es-acc">—</div>
+        <div class="eval-stat-lbl">Accuracy</div>
+      </div>
+    </div>
+    <div class="bp-bar-wrap"><div class="bp-bar" id="eval-bar"></div></div>
+    <div style="font-size:12px;font-family:var(--mono);color:var(--mu);margin-top:10px" id="eval-status">Starting...</div>
+  </div>
+
+  <!-- Results table -->
+  <div id="eval-results" style="display:none">
+    <div class="sec-label">Results</div>
+    <div class="eval-table-wrap">
+      <table class="eval-table">
+        <thead>
+          <tr>
+            <th>URL</th>
+            <th>Predicted Sub-Category</th>
+            <th>Predicted NPCI</th>
+            <th>Correct NPCI</th>
+            <th>Match</th>
+          </tr>
+        </thead>
+        <tbody id="eval-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Failure analysis (shown when done) -->
+    <div id="eval-summary" style="display:none">
+      <div class="sec-label">Failure Analysis · categories most often predicted incorrectly</div>
+      <div id="eval-failures"></div>
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn-ghost" onclick="downloadEvalCSV()">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 12v2h12v-2M8 2v8M5 7l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Download results CSV
+        </button>
+        <button class="btn-ghost" onclick="resetEval()">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 8a6 6 0 1 1 1.2 3.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M2 13V9h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          New eval
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v5.2 — Accuracy Eval</div>
 </div>
 
 <script>
@@ -1649,6 +1781,202 @@ function makeErrCard(url, msg) {
   div.style.borderColor = 'rgba(255,95,87,.2)';
   div.innerHTML = `<div><div class="bi-url">${url}</div><div style="font-size:13px;color:var(--err);font-family:var(--mono);margin-top:4px">⚠ ${msg}</div></div>`;
   return div;
+}
+
+// ── EVAL ──────────────────────────────────────────────────────────────────────
+let evalResults = [];
+let evalRunning = false;
+
+function loadEvalCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { document.getElementById('eval-csv').value = e.target.result; };
+  reader.readAsText(file);
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    if (line[i] === '"') { inQ = !inQ; }
+    else if (line[i] === ',' && !inQ) { result.push(cur); cur = ''; }
+    else { cur += line[i]; }
+  }
+  result.push(cur);
+  return result;
+}
+
+function parseEvalCSV(text) {
+  const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean);
+  if (lines.length < 2) return null;
+  const header = parseCSVLine(lines[0]).map(h => h.trim().toLowerCase().replace(/^"|"$/g,''));
+  const urlIdx   = header.findIndex(h => h === 'url' || h === 'weburl' || h === 'website' || h === 'web url' || h === 'web_url');
+  const npciIdx  = header.findIndex(h => h.includes('npci') || h === 'correct_mcc');
+  const subIdx   = header.findIndex(h => (h.includes('sub') && h.includes('cat')) || h === 'sub_category');
+  const cardsIdx = header.findIndex(h => h.includes('cards') || h.includes('card'));
+  if (urlIdx === -1) return null;
+  const items = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = parseCSVLine(lines[i]);
+    const raw = (cols[urlIdx] || '').trim().replace(/^"|"$/g, '');
+    if (!raw) continue;
+    items.push({
+      url:           /^https?:\/\//i.test(raw) ? raw : 'https://' + raw,
+      correct_npci:  npciIdx  >= 0 ? (cols[npciIdx]  || '').trim().replace(/^"|"$/g,'') : '',
+      correct_sub:   subIdx   >= 0 ? (cols[subIdx]   || '').trim().replace(/^"|"$/g,'') : '',
+      correct_cards: cardsIdx >= 0 ? (cols[cardsIdx] || '').trim().replace(/^"|"$/g,'') : '',
+    });
+  }
+  return items.length ? items : null;
+}
+
+function updateEvalStats(done, correct, wrong, total) {
+  document.getElementById('es-total').textContent   = done + '/' + total;
+  document.getElementById('es-correct').textContent = correct;
+  document.getElementById('es-wrong').textContent   = wrong;
+  document.getElementById('es-acc').textContent     = done > 0 ? ((correct/done)*100).toFixed(1)+'%' : '—';
+  document.getElementById('eval-bar').style.width   = (done/total*100) + '%';
+}
+
+function appendEvalRow(r) {
+  const tbody = document.getElementById('eval-tbody');
+  const tr = document.createElement('tr');
+  if (r.error) {
+    tr.className = 'ev-skip';
+    tr.innerHTML = `
+      <td class="ev-url-cell" title="${r.url}">${r.url.replace(/^https?:\/\/(www\.)?/,'').slice(0,38)}</td>
+      <td colspan="3" style="color:var(--err);font-size:11px">Error: ${r.error.slice(0,60)}</td>
+      <td>—</td>`;
+  } else {
+    const match = r.correct_npci ? r.predicted_npci === r.correct_npci : null;
+    tr.className = match === true ? 'ev-ok' : match === false ? 'ev-err' : 'ev-skip';
+    tr.innerHTML = `
+      <td class="ev-url-cell" title="${r.url}">${r.url.replace(/^https?:\/\/(www\.)?/,'').slice(0,38)}</td>
+      <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.predicted_sub||'—'}</td>
+      <td style="font-weight:600">${r.predicted_npci||'—'}</td>
+      <td style="font-weight:600">${r.correct_npci||'—'}</td>
+      <td>${match===true?'✓':match===false?'✗':'—'}</td>`;
+  }
+  tbody.appendChild(tr);
+  tbody.parentElement.scrollTop = tbody.parentElement.scrollHeight;
+}
+
+function showEvalSummary() {
+  const failures = evalResults.filter(r => !r.error && r.correct_npci && r.predicted_npci !== r.correct_npci);
+  // Group by predicted sub-category → what was the actual correct npci?
+  const groups = {};
+  for (const f of failures) {
+    const sub = f.predicted_sub || 'Unknown';
+    if (!groups[sub]) groups[sub] = [];
+    groups[sub].push(f);
+  }
+  const sorted = Object.entries(groups).sort((a,b) => b[1].length - a[1].length);
+  const container = document.getElementById('eval-failures');
+  container.innerHTML = '';
+  if (!sorted.length) {
+    container.innerHTML = '<div style="color:var(--ok);font-family:var(--mono);font-size:13px;padding:16px 0">All predictions matched the correct NPCI MCC.</div>';
+  } else {
+    for (const [sub, items] of sorted.slice(0, 12)) {
+      const div = document.createElement('div');
+      div.className = 'failure-group';
+      // Show unique correct MCCs expected (helps understand what the rule gap is)
+      const expectedMCCs = [...new Set(items.map(i => i.correct_npci).filter(Boolean))].join(', ');
+      const examples = items.slice(0, 6).map(i => {
+        const url = i.url.replace(/^https?:\/\/(www\.)?/,'').slice(0,40);
+        const csub = i.correct_sub ? ` [${i.correct_sub}]` : '';
+        return `${url} → got ${i.predicted_npci}, need ${i.correct_npci}${csub}`;
+      }).join('<br>');
+      div.innerHTML = `
+        <div class="fg-header">
+          <div class="fg-subcat">Predicted as: "${sub}"</div>
+          <div class="fg-count">${items.length} wrong · should be MCC ${expectedMCCs}</div>
+        </div>
+        <div class="fg-items">${examples}</div>`;
+      container.appendChild(div);
+    }
+  }
+  document.getElementById('eval-summary').style.display = 'block';
+}
+
+async function runEval() {
+  if (evalRunning) return;
+  const csvText = document.getElementById('eval-csv').value.trim();
+  if (!csvText) { alert('Please paste a CSV or upload a file first.'); return; }
+  let items = parseEvalCSV(csvText);
+  if (!items) { alert('Could not find a "url" column. Ensure the first row is a header containing url (or weburl) and correct_npci_mcc.'); return; }
+
+  // Apply sample
+  const sampleVal = document.getElementById('eval-sample').value;
+  if (sampleVal !== 'all' && items.length > parseInt(sampleVal)) {
+    const n = parseInt(sampleVal);
+    items = [...items].sort(() => Math.random() - 0.5).slice(0, n);
+  }
+
+  const concurrency = parseInt(document.getElementById('eval-concurrency').value);
+  evalRunning = true;
+  evalResults = [];
+  document.getElementById('evalbtn').disabled = true;
+  document.getElementById('eval-prog').style.display = 'block';
+  document.getElementById('eval-results').style.display = 'block';
+  document.getElementById('eval-summary').style.display = 'none';
+  document.getElementById('eval-tbody').innerHTML = '';
+  document.getElementById('eval-bar').style.width = '0%';
+  let done = 0, correct = 0, wrong = 0;
+  updateEvalStats(0, 0, 0, items.length);
+
+  for (let i = 0; i < items.length; i += concurrency) {
+    const batch = items.slice(i, i + concurrency);
+    document.getElementById('eval-status').textContent =
+      `Running ${i+1}–${Math.min(i+concurrency, items.length)} of ${items.length}…`;
+    await Promise.all(batch.map(async item => {
+      let r;
+      try {
+        const pc = await fetchPageContent(item.url);
+        const d  = await classify(item.url, pc);
+        const match = item.correct_npci ? (d.Recommended_UPI_MCC === item.correct_npci) : null;
+        r = { ...item, predicted_sub: d.SubCategory, predicted_npci: d.Recommended_UPI_MCC,
+               predicted_cards: d.Recommended_Cards_MCC, match, confidence: d.confidence, error: null };
+        if (match === true) correct++;
+        else if (match === false) wrong++;
+      } catch(e) {
+        r = { ...item, predicted_sub:'—', predicted_npci:'—', predicted_cards:'—', match:false, confidence:'—', error: e.message };
+        wrong++;
+      }
+      done++;
+      evalResults.push(r);
+      appendEvalRow(r);
+      updateEvalStats(done, correct, wrong, items.length);
+    }));
+  }
+
+  document.getElementById('eval-bar').style.width = '100%';
+  document.getElementById('eval-status').textContent =
+    `Done · ${done} tested · ${correct} correct · ${wrong} wrong · ${((correct/done)*100).toFixed(1)}% accuracy`;
+  showEvalSummary();
+  evalRunning = false;
+  document.getElementById('evalbtn').disabled = false;
+}
+
+function resetEval() {
+  document.getElementById('eval-prog').style.display = 'none';
+  document.getElementById('eval-results').style.display = 'none';
+  document.getElementById('eval-csv').value = '';
+  evalResults = [];
+}
+
+function downloadEvalCSV() {
+  if (!evalResults.length) return;
+  const hdr = 'url,correct_npci,correct_sub_category,predicted_sub_category,predicted_npci,predicted_cards,match,error';
+  const rows = evalResults.map(r => [
+    r.url, r.correct_npci||'', r.correct_sub||'', r.predicted_sub||'',
+    r.predicted_npci||'', r.predicted_cards||'',
+    r.match===true?'correct':r.match===false?'wrong':'no_ref', r.error||''
+  ].map(v => '"'+String(v).replace(/"/g,'""')+'"').join(','));
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent([hdr,...rows].join('\n'));
+  a.download = 'riskradar_eval_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
