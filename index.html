@@ -474,7 +474,7 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
   <div id="batch-results"></div>
 </div>
 
-<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v4.1 — reads website content via Jina AI</div>
+<div class="foot">Gemini 1.5 Pro (preferred) · Groq llama fallback · Lookup table (529 merchants) · Paytm Merchant Risk &amp; Compliance<br>NPCI MCC + ISO 18245 · v4.2 — reads website + few-shot learning</div>
 </div>
 
 <script>
@@ -1205,28 +1205,6 @@ async function fetchPageContent(url) {
 
 // ── TWO-STEP CLASSIFY ─────────────────────────────────────────────────────────
 async function classify(url, pageContent) {
-  // Step 0: Exact training-data match → instant deterministic answer, no LLM call
-  const domain = extractDomain(url);
-  const trainedSubCat = TRAINING_LOOKUP[domain];
-  if (trainedSubCat) {
-    const entry = T[trainedSubCat];
-    if (entry) {
-      return {
-        merchant_name: domain,
-        line_of_business: entry.cat,
-        business_model: 'B2C',
-        key_tags: [],
-        Category: entry.cat,
-        SubCategory: trainedSubCat,
-        Recommended_UPI_MCC: entry.n,
-        Recommended_Cards_MCC: entry.c,
-        confidence: 'High',
-        reasoning: 'Exact match in training database (529 verified merchants).',
-        _source: 'training'
-      };
-    }
-  }
-
   // Build LLM input — URL + website content if available
   const llmInput = pageContent
     ? `Merchant URL: ${url}\n\nWEBSITE CONTENT (read carefully before classifying):\n${pageContent}`
@@ -1398,17 +1376,9 @@ async function runSingle() {
   jData = null;
 
   try {
-    // Check training lookup first (instant — skip page fetch if known merchant)
-    const knownDomain = TRAINING_LOOKUP[extractDomain(url)];
-    let pageContent = null;
-    if (!knownDomain) {
-      showProg('Reading merchant website...', 1);
-      pageContent = await fetchPageContent(url);
-      showProg('Analyzing content with AI...', 2);
-    } else {
-      showProg('Found in training database...', 1);
-      showProg('Matching to sub-category taxonomy...', 2);
-    }
+    showProg('Reading merchant website...', 1);
+    const pageContent = await fetchPageContent(url);
+    showProg('Analyzing content with AI...', 2);
     await wait(100);
     showProg('Looking up NPCI & ISO 18245 codes...', 3);
     await wait(100);
@@ -1460,10 +1430,7 @@ function render(d, url) {
 
   // Source badge: training (exact match) vs lookup (LLM→table) vs llm_fallback
   const sb = document.getElementById('src-badge');
-  if (d._source === 'training') {
-    sb.className = 'src-badge src-training';
-    sb.textContent = '⚡ Training Data';
-  } else if (d._source === 'lookup') {
+  if (d._source === 'lookup') {
     sb.className = 'src-badge src-lookup';
     sb.textContent = '● Lookup';
   } else {
@@ -1567,7 +1534,7 @@ async function runBatch() {
     bar.style.width = Math.round((i/urls.length)*100)+'%';
     ptxt.textContent = `Processing ${i+1} of ${urls.length}: ${urls[i]}`;
     try {
-      const pc = TRAINING_LOOKUP[extractDomain(urls[i])] ? null : await fetchPageContent(urls[i]);
+      const pc = await fetchPageContent(urls[i]);
       const d = await classify(urls[i], pc);
       container.appendChild(makeBatchCard(urls[i], d));
     } catch(e) {
@@ -1583,9 +1550,7 @@ async function runBatch() {
 function makeBatchCard(url, d) {
   const confMap = {High:['conf-high','High'],Medium:['conf-med','Medium'],Low:['conf-low','Low']};
   const [cls] = confMap[d.confidence] || confMap.Low;
-  const srcBadge = d._source === 'training'
-    ? '<span class="src-badge src-training" style="font-size:10px">⚡ Training</span>'
-    : d._source === 'lookup'
+  const srcBadge = d._source === 'lookup'
     ? '<span class="src-badge src-lookup" style="font-size:10px">Lookup</span>'
     : '<span class="src-badge src-fallback" style="font-size:10px">LLM Fallback</span>';
   const div = document.createElement('div');
