@@ -271,7 +271,7 @@ pre{padding:20px;font-family:var(--mono);font-size:13px;line-height:1.9;overflow
     <div class="logo">R</div>
     <div class="hdr-title">
       <h1>Risk<span>Radar</span></h1>
-      <div class="sub">Paytm Risk &amp; Compliance · MCC Identifier · v5.6</div>
+      <div class="sub">Paytm Risk &amp; Compliance · MCC Identifier · v5.7</div>
     </div>
   </div>
   <div class="hdr-right">
@@ -851,6 +851,11 @@ MANDATORY RULES:
 - Multi-service provider: internet + digital cable TV + OTT bundle (f2hnetworks.com) → "Cable TV / Local Cable Operator" (4899) — the existing rule covers this but: if cable TV is listed as a co-primary service alongside internet → 4899
 - Aquarium / fish tank / pond supplies → "Grocery / Supermarket / Kirana" is WRONG — use "Pet Care & Supplies" (5995) for pet/aquarium products
 - Inflatable products / outdoor leisure / garden equipment → "Home Decor / Furniture / Kitchen" (5712)
+- B2B electrical equipment / industrial electrical supplies / switchgear / wiring accessories sold to businesses → "Electrical Equipment & Supplies" (5065) — NOT "Electronics & Home Appliances" (5722 = B2C consumer electronics only)
+- Print shop / business card printing / offset printing / document printing / marketing material printing (printonweb.in) → "Print Shop / Blueprinting" (7332) — NOT Electronics, NOT Stationery
+- Software license retail store (sells downloadable/boxed software licenses: Windows, Office, antivirus) → "Computer Software Store" (5734) — NOT SaaS. Key signal: one-time license purchase, NOT cloud subscription
+- Resume builder / job portal / career platform with subscription (workruit.com) → "Subscription Services" (5968) — NOT SaaS. Key signal: subscription fee for accessing platform features
+- EV scooter rental / bike rental / vehicle rental / equipment rental (mobycy.com, Zypp Electric) → "Rental Services / Equipment Rental" (7394) — NOT Courier / Logistics
 - Online used car / used bike marketplace (droom.in, Cars24, OLX Autos) → "Car / Bike Dealership" (5511) — NOT "Online Marketplace". Key signal: buy/sell/rent vehicles, car listing platform
 - Real estate DEVELOPER / builder (constructs and sells new residential/commercial properties, apartments, townships) → MCC 1520 — NOT Real Estate Agent (6513). Key signal: "developer", "builder", "under construction", "possession", "new project launch"
 - Real Estate AGENT / broker (facilitates buying/selling/renting of existing properties, no construction) → "Real Estate / Property" (6513)
